@@ -1,5 +1,6 @@
 import string
 from hashlib import sha256
+from common import *
 
 password_max_length = 50
 username_max_length = 25
@@ -33,8 +34,40 @@ def validate_object_name(object_name: str):
     return True
 
 
-def hash_string(str_var: str):
-    return sha256(str_var.encode('utf-8'))
+def create_user(username: str, password: str):
+    if not validate_username(username):
+        raise InvalidUsernameException()
+    if len(username) > username_max_length:
+        raise UsernameTooLongException(username)
+    if not validate_password(password):
+        raise InvalidPasswordException(password)
+    if len(password) > password_max_length:
+        raise PasswordTooLongException(password)
+    if user_exist(username):
+        raise UserExistException(username)
+    users = User.objects.order_by('u_id')
+    current = 0
+    for user in users:
+        if user.u_id == str(current):
+            current += 1
+        else:
+            break
+    return User.create_user(u_id=current, username=username, hashed_password=hash_string(password))
+
+
+def create_group(name="Unnamed group"):
+    if not validate_object_name(name):
+        raise InvalidObjectNameException()
+    if len(name) > object_name_max_length:
+        raise ObjectNameTooLongException(name)
+    groups = HubGroup.objects.order_by('u_id')
+    current = 0
+    for group in groups:
+        if group.u_id == str(current):
+            current += 1
+        else:
+            break
+    return HubGroup.create_group(u_id=current, name=name)
 
 
 class ObjectCreationException(Exception):
