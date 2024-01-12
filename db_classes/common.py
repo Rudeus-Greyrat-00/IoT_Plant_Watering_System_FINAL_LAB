@@ -1,4 +1,5 @@
 from enum import Enum
+import string
 
 
 class WateringInterval(Enum):
@@ -9,3 +10,5 @@ class WateringInterval(Enum):
     EVERY_FIVE_DAYS = 5
     EVERY_SIX_DAYS = 6
     WEEKLY = 7
+
+
