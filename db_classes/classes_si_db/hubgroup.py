@@ -2,6 +2,7 @@ from mongoengine import Document, StringField, DictField, DateTimeField, ListFie
 from hub import Hub
 from bson import json_util
 import json
+import datetime
 
 
 class HubGroup(Document):
@@ -17,3 +18,9 @@ class HubGroup(Document):
     def to_dict(self):
         data = self.to_mongo().to_dict()
         return json.loads(json_util.dumps(data))
+
+    @classmethod
+    def create_group(cls, u_id, name="Unnamed group"):
+        group = cls(u_id=u_id, name=name, date=datetime.date.today())
+        group.save()
+        return group

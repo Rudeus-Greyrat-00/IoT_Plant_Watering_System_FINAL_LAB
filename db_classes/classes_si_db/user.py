@@ -18,3 +18,8 @@ class User(Document):
         data = self.to_mongo().to_dict()
         return json.loads(json_util.dumps(data))
 
+    @classmethod
+    def create_user(cls, u_id, username, hashed_password):
+        user = cls(u_id=u_id, username=username, hashed_password=hashed_password)
+        user.save()
+        return user
