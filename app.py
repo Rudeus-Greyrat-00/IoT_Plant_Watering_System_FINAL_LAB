@@ -138,7 +138,7 @@ def unregister_user():
         return throw_error_page("Unspecified hub id")
     hub = Hub.objects(u_id=hub_id).first()
     delete_hub(hub)
-    eturn  # TODO "You've successfully unsubscribed the hub with name (hubname)"
+    return  # TODO "You've successfully unsubscribed the hub with name (hubname)"
 
 
 

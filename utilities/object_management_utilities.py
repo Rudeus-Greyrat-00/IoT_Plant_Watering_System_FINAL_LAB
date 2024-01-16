@@ -1,4 +1,4 @@
-from common import *
+from .common import *
 from db_classes.classes_si_db.user import User
 from db_classes.classes_si_db.hubgroup import HubGroup
 from db_classes.classes_si_db.hub import Hub

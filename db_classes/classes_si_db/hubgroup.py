@@ -1,10 +1,10 @@
 from mongoengine import Document, StringField, DictField, DateTimeField, ListField, ReferenceField
-from hub import Hub
+from .hub import Hub
 from bson import json_util
 import json
 import datetime
-from classes_si_db_common import object_name_max_length, validate_object_name
-from classes_si_db_common import InvalidObjectNameException, ObjectNameTooLongException
+from .classes_si_db_common import object_name_max_length, validate_object_name
+from .classes_si_db_common import InvalidObjectNameException, ObjectNameTooLongException
 
 
 class HubGroup(Document):

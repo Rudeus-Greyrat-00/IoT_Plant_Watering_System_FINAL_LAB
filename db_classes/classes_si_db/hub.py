@@ -1,11 +1,11 @@
 from mongoengine import Document, StringField, DictField, DateTimeField, FloatField, EnumField, ListField
 from mongoengine import EmbeddedDocumentField
-from measures import Sensor
+from .measures import Sensor
 from bson import json_util
 import datetime
 from ..common import WateringInterval
-from classes_si_db_common import validate_object_name, object_name_max_length
-from classes_si_db_common import InvalidObjectNameException, ObjectNameTooLongException
+from .classes_si_db_common import validate_object_name, object_name_max_length
+from .classes_si_db_common import InvalidObjectNameException, ObjectNameTooLongException
 import json
 
 

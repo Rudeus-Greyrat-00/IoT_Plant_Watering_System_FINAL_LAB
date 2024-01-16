@@ -1,9 +1,10 @@
 from mongoengine import Document, StringField, DictField, DateTimeField, ListField, ReferenceField
-from hubgroup import HubGroup
+from .hubgroup import HubGroup
 from bson import json_util
 from hashlib import sha256
 import string
 import json
+
 
 password_max_length = 50
 username_max_length = 25
