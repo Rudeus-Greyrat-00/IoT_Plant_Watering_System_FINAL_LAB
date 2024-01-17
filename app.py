@@ -73,7 +73,7 @@ def register_user():
     if request.method == "POST":
         data = request.get_json()
         try:
-            user = User.create_user(
+            user = Users.create_user(
                 username=data.get('username'),
                 password=data.get('password')
             )
@@ -107,7 +107,7 @@ def registrate_group():
         throw_error_page("User must be logged in")
         return
     user_id = get_uid_from_cookies()  # from cookies
-    user = User.objects(u_id=user_id).first()
+    user = Users.objects(u_id=user_id).first()
     try:
         if name:
             create_group_and_assign_to_user(user=user, group_name=name)
@@ -143,7 +143,7 @@ def registrate_hub():
 def unregister_user():
     if not user_is_logged_in():
         return throw_error_page("User should logged in")
-    user = User.objects(u_id=get_uid_from_cookies()).first()
+    user = Users.objects(u_id=get_uid_from_cookies()).first()
     delete_user(user)
     return render_template("index.html")
 
@@ -169,7 +169,7 @@ def unregister_hub():
     hub_id = data['hub_id']
     if not hub_id:
         return throw_error_page("Unspecified hub id")
-    hub = Hub.objects(u_id=hub_id).first()
+    hub = Hubs.objects(u_id=hub_id).first()
     delete_hub(hub)
     return render_template("index.html")
 
