@@ -1,13 +1,13 @@
 from flask import Flask, request, render_template, url_for, jsonify
 from parameters.databasemanager import DatabaseManager
 from parameters.credentials import db_name_app, uri_app, db_name_plant, uri_plant
-from db_classes.classes_si_db.user import User
-from db_classes.classes_si_db.hubgroup import HubGroup
+from db_classes.classes_si_db.user import Users
+from db_classes.classes_si_db.hubgroups import HubGroups
 from db_classes.classes_si_db.exceptions import UserCreationException, ObjectCreationException
 from utilities.object_creation_utilities import create_group_and_assign_to_user, create_hub_and_assign_to_group
 from utilities.object_management_utilities import delete_user, delete_hub, delete_group
 from utilities.common import UserMustLoggedException
-from utilities.object_creation_utilities import Hub
+from utilities.object_creation_utilities import Hubs
 
 app = Flask(__name__)
 
@@ -110,7 +110,7 @@ def registrate_hub():
         return throw_error_page("User must be logged in")
     elif not group_id:
         return throw_error_page("Unspecified group id")
-    group = HubGroup.objects(u_id=group_id).first()
+    group = HubGroups.objects(u_id=group_id).first()
     if not group:
         return throw_error_page("Specified group does not exist")
     try:
@@ -139,7 +139,7 @@ def unregister_group():
     group_id = data['group_id']
     if not group_id:
         return throw_error_page("Unspecified group id")
-    group = HubGroup.objects(u_id=group_id).first()
+    group = HubGroups.objects(u_id=group_id).first()
     delete_group(group)
     return render_template("index.html")
 

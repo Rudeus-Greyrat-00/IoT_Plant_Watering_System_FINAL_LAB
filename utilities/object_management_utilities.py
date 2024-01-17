@@ -1,10 +1,10 @@
 from .common import *
 from db_classes.classes_si_db.user import User
-from db_classes.classes_si_db.hubgroup import HubGroup
-from db_classes.classes_si_db.hub import Hub
+from db_classes.classes_si_db.hubgroups import HubGroups
+from db_classes.classes_si_db.hubs import Hubs
 
 
-def assign_group_to_user(group : HubGroup, user: User):
+def assign_group_to_user(group : HubGroups, user: User):
     """
     Assign an HubGroup object to an user given his user id
     :param group:
@@ -14,7 +14,7 @@ def assign_group_to_user(group : HubGroup, user: User):
     raise NotImplemented()
 
 
-def assign_hub_to_group(hub: Hub, group: HubGroup):
+def assign_hub_to_group(hub: Hubs, group: HubGroups):
     """
     Given a Hub object and a group object, assign said Hub to the group
     :param hub:
@@ -24,7 +24,7 @@ def assign_hub_to_group(hub: Hub, group: HubGroup):
     raise NotImplemented()
 
 
-def delete_hub(hub: Hub):
+def delete_hub(hub: Hubs):
     """
     Used when a user is deleted, or he removes a hub from his account
     :return: nothing
@@ -33,7 +33,7 @@ def delete_hub(hub: Hub):
     raise NotImplemented()
 
 
-def delete_group(group: HubGroup):
+def delete_group(group: HubGroups):
     """
     Used when a user is deleted, or he removes a group from his account
     :return: nothing
