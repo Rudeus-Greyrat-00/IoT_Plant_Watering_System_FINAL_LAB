@@ -25,11 +25,13 @@ db.connect_db()
 plants_db = DatabaseManager(db_name=db_name_plant, uri=uri_plant)
 plants_db.connect_db()
 
+
 @login_manager.user_loader
 def load_user(user_id):
     if not Users.user_exist_uid(user_id):
         return None
     return UserObject(Users.objects(u_id=user_id).first())
+
 
 def user_is_logged_in():  # more parameters may be necessary
     """
