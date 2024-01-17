@@ -1,5 +1,5 @@
 from mongoengine import Document, StringField, DictField, DateTimeField, ListField, ReferenceField
-from .hub import Hub
+from .hubs import Hubs
 from bson import json_util
 import json
 import datetime
@@ -7,13 +7,13 @@ from .classes_si_db_common import object_name_max_length, validate_object_name
 from .classes_si_db_common import InvalidObjectNameException, ObjectNameTooLongException
 
 
-class HubGroup(Document):
+class HubGroups(Document):
     u_id = StringField(required=True)  # assigned in production
 
     name = StringField()
     creation_date = DateTimeField()
 
-    hubs = ListField(ReferenceField(Hub))
+    hubs = ListField(ReferenceField(Hubs))
     additional_attributes = DictField()
     meta = {'collection': 'Groups'}
 
@@ -27,14 +27,14 @@ class HubGroup(Document):
             raise InvalidObjectNameException()
         if len(name) > object_name_max_length:
             raise ObjectNameTooLongException(name)
-        groups = HubGroup.objects.order_by('u_id')
+        groups = HubGroups.objects.order_by('u_id')
         current = 0
         for group in groups:
             if group.u_id == str(current):
                 current += 1
             else:
                 break
-        return HubGroup._loc_create_group(u_id=current, name=name)
+        return HubGroups._loc_create_group(u_id=current, name=name)
 
     @classmethod
     def _loc_create_group(cls, u_id, name="Unnamed group"):
