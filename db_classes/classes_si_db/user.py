@@ -113,26 +113,26 @@ class InvalidUsernameException(UserCreationException):
 
 
 class PasswordTooLongException(UserCreationException):
-    def __int__(self, password: str):
+    def __init__(self, password: str):
         self.message = ("The password is too long (max length: " + str(password_max_length) +
                         ", actual length: " + str(len(password)) + ")")
         super().__init__(self.message)
 
 
 class UsernameTooLongException(UserCreationException):
-    def __int__(self, username: str):
+    def __init__(self, username: str):
         self.message = ("The username is too long (max length: " + str(username_max_length) +
                         ", actual length: " + str(len(username)) + ")")
         super().__init__(self.message)
 
 
 class UserExistException(UserCreationException):
-    def __int__(self, username):
+    def __init__(self, username):
         self.message = "Username " + username + " already exist!"
         super().__init__(self.message)
 
 
 class UserNotExistException(Exception):
-    def __int__(self, username):
+    def __init__(self, username):
         self.message = "Username " + username + " does not exist!"
         super().__init__(self.message)

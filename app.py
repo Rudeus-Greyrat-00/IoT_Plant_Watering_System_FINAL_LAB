@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template
+from flask import Flask, request, render_template, url_for, jsonify
 from parameters.databasemanager import DatabaseManager
 from parameters.credentials import db_name_app, uri_app, db_name_plant, uri_plant
 from db_classes.classes_si_db.user import User
@@ -52,17 +52,35 @@ def homepage():
     return render_template("index.html")
 
 
-@app.route('/register', methods=['POST'])
+@app.route('/register', methods=['POST', 'GET'])
 def register_user():
-    data = request.get_json()
-    username = data['username']
-    password = data['password']
-    try:
-        User.create_user(username, password)
-    except UserCreationException as e:
-        return throw_error_page(e.message)
-    login_user()
-    return render_template("register.html")
+    if request.method == "POST":
+        data = request.get_json()
+        try:
+            user = User.create_user(
+                username=data.get('username'),
+                password=data.get('password')
+            )
+            return jsonify(user.to_dict()), 201
+        except UserCreationException as e:
+            return jsonify({'error': str(e.message)}), 400
+    elif request.method == "GET":
+        return render_template("register.html")
+
+    """
+    if request.method == "POST":
+        data = request.get_json()
+        username = data['username']
+        password = data['password']
+        try:
+            user = User.create_user(username, password)
+            return jsonify(user.to_dict()), 201
+            #login_user()
+        except UserCreationException as e:
+            return throw_error_page(e.message)
+    elif request.method == "GET":
+        return render_template("register.html")
+    """
 
 
 @app.route('/register_group', methods=['POST'])
@@ -142,7 +160,10 @@ def unregister_hub():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login_user():
-    return render_template("login.html")
+    if request.method == "GET":
+        return render_template("login.html")
+    else:
+        return throw_error_page(e.message)
 
 
 @app.route('/report', methods=['GET'])
