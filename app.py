@@ -66,7 +66,7 @@ def throw_error_page(error_str: str):
     if app_mode == 'DEBUG':
         return jsonify({'error': 'param: ' + error_str}), 400
     else:
-        raise NotImplemented()  # TODO generic eerror page
+        raise NotImplemented()  # TODO generic error page
 
 
 # ----- ENDPOINTS ----- #
@@ -195,7 +195,7 @@ def endpoint_login_user():
             login_user(UserObject(Users.objects(username=username).first()), remember=remember)
             return render_template("index.html")
         else:
-            return render_template("login.html")  # username or password incorrect!
+            return render_template("login.html")  # TODO warning -- > username or password incorrect!
 
 
 @app.route('/logout', methods=['GET'])

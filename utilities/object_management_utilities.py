@@ -6,12 +6,12 @@ from db_classes.classes_si_db.hubs import Hubs
 
 def assign_group_to_user(group : HubGroups, user: Users):
     """
-    Assign an HubGroup object to an user given his user id
+    Assign an HubGroup object to a user given his user id
     :param group:
     :param user:
     :return: nothing
     """
-    raise NotImplemented()
+    raise NotImplemented()  # TODO
 
 
 def assign_hub_to_group(hub: Hubs, group: HubGroups):
@@ -21,7 +21,7 @@ def assign_hub_to_group(hub: Hubs, group: HubGroups):
     :param group:
     :return: nothing
     """
-    raise NotImplemented()
+    raise NotImplemented()  # TODO
 
 
 def delete_hub(hub: Hubs):
@@ -30,7 +30,7 @@ def delete_hub(hub: Hubs):
     :return: nothing
     """
 
-    raise NotImplemented()
+    raise NotImplemented()  # TODO
 
 
 def delete_group(group: HubGroups):
@@ -40,15 +40,15 @@ def delete_group(group: HubGroups):
     """
     for hub in group.hubs:
         delete_hub(hub)
-    raise NotImplemented()
+    raise NotImplemented()  # TODO
 
 
 def delete_user(user: Users):
     """
-    Used when an user delete his account, his groups and hubs are then deleted as well
+    Used when a user delete his account, his groups and hubs are then deleted as well
     :return: nothing
     """
-    for group in user.groups: # this is pseudo code but perhaps it would work
+    for group in user.groups:  # this is pseudocode but perhaps it would work
         delete_group(group)
     # delete user from db
-    raise NotImplemented()
+    raise NotImplemented()  # TODO
