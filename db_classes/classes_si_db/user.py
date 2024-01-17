@@ -97,7 +97,7 @@ class UserObject(UserMixin):
         self.user_id = user_mongoengine_query_object.u_id
 
     def get_id(self):
-        return self.user_id
+        return str(self.user_id)
 
 
 class UserCreationException(Exception):

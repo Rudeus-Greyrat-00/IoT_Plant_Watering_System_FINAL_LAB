@@ -1,5 +1,5 @@
 from flask import Flask, request, render_template, url_for, jsonify
-from flask_login import LoginManager
+from flask_login import LoginManager, current_user, login_user, logout_user
 from parameters.databasemanager import DatabaseManager
 from parameters.credentials import db_name_app, uri_app, db_name_plant, uri_plant
 from db_classes.classes_si_db.user import Users, UserObject
@@ -26,6 +26,8 @@ plants_db = DatabaseManager(db_name=db_name_plant, uri=uri_plant)
 plants_db.connect_db()
 
 
+# ----- FLASK LOGIN CALLBACK ----- #
+
 @login_manager.user_loader
 def load_user(user_id):
     if not Users.user_exist_uid(user_id):
@@ -33,12 +35,14 @@ def load_user(user_id):
     return UserObject(Users.objects(u_id=user_id).first())
 
 
-def user_is_logged_in():  # more parameters may be necessary
+# ----- UTILITY FUNCTIONS ----- #
+
+def user_is_logged_in():
     """
     A function that check if the user sending the request is logged in or not
     :return: true if the user is logged in, false otherwise
     """
-    raise NotImplemented()
+    return current_user.is_authenticated
 
 
 def get_uid_from_cookies():  # more parameters may be necessary
@@ -63,6 +67,8 @@ def throw_error_page(error_str: str):
     pass
 
 
+# ----- ENDPOINTS ----- #
+
 @app.route('/', methods=['GET'])
 def homepage():
     return render_template("index.html")
@@ -77,6 +83,7 @@ def register_user():
                 username=data.get('username'),
                 password=data.get('password')
             )
+            login_user(UserObject(Users.objects(user.username).first()))
             return jsonify(user.to_dict()), 201
         except UserCreationException as e:
             return jsonify({'error': str(e.message)}), 400
@@ -91,7 +98,7 @@ def register_user():
         try:
             user = User.create_user(username, password)
             return jsonify(user.to_dict()), 201
-            #login_user()
+            login_user(UserObject(Users.objects(user.username).first()))
         except UserCreationException as e:
             return throw_error_page(e.message)
     elif request.method == "GET":
@@ -175,11 +182,25 @@ def unregister_hub():
 
 
 @app.route('/login', methods=['GET', 'POST'])
-def login_user():
+def endpoint_login_user():
     if request.method == "GET":
         return render_template("login.html")
-    else:
-        return throw_error_page(e.message)
+    elif request.method == 'POST':
+        username = request.form.get('username')
+        password = Users.hash_string(request.form.get('password'))
+        remember = bool(request.form.get('remember me'))
+        if Users.user_exist(username) and Users.objects(username=username).first().hashed_password == password:
+            login_user(UserObject(Users.objects(username=username).first()), remember=remember)
+            return render_template("index.html")
+        else:
+            return render_template("login.html")  # username or password incorrect!
+
+
+@app.route('/logout', methods=['GET'])
+def endpoint_logout_user():
+    if user_is_logged_in():
+        logout_user()
+    return render_template("index.html")
 
 
 @app.route('/report', methods=['GET'])

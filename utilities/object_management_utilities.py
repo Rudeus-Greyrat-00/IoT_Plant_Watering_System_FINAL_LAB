@@ -1,10 +1,10 @@
 from .common import *
-from db_classes.classes_si_db.user import User
+from db_classes.classes_si_db.user import Users
 from db_classes.classes_si_db.hubgroups import HubGroups
 from db_classes.classes_si_db.hubs import Hubs
 
 
-def assign_group_to_user(group : HubGroups, user: User):
+def assign_group_to_user(group : HubGroups, user: Users):
     """
     Assign an HubGroup object to an user given his user id
     :param group:
@@ -43,7 +43,7 @@ def delete_group(group: HubGroups):
     raise NotImplemented()
 
 
-def delete_user(user: User):
+def delete_user(user: Users):
     """
     Used when an user delete his account, his groups and hubs are then deleted as well
     :return: nothing

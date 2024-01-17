@@ -1,4 +1,4 @@
-from db_classes.classes_si_db.user import User
+from db_classes.classes_si_db.user import Users
 from db_classes.classes_si_db.hubgroups import HubGroups
 from hashlib import sha256
 
