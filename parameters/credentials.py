@@ -1,5 +1,6 @@
-uri_app = "INDIRIZZO"
+uri_app = "mongodb://localhost:27017"
 db_name_app = "Smart_Irrigation"
 
-uri_plant = "INDIRIZZO"
-db_name_plant = "Plant_Database"
+uri_plant = "mongodb://localhost:27017"
+db_name_plant = "Plants"
+

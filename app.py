@@ -1,4 +1,4 @@
-from flask import Flask, request
+from flask import Flask, request, render_template
 from parameters.databasemanager import DatabaseManager
 from parameters.credentials import db_name_app, uri_app, db_name_plant, uri_plant
 from db_classes.classes_si_db.user import User
@@ -16,7 +16,6 @@ db.connect_db()
 
 plants_db = DatabaseManager(db_name=db_name_plant, uri=uri_plant)
 plants_db.connect_db()
-
 
 def user_is_logged_in():  # more parameters may be necessary
     """
@@ -50,8 +49,7 @@ def throw_error_page(error_str: str):
 
 @app.route('/', methods=['GET'])
 def homepage():
-    # TODO
-    pass
+    return render_template("index.html")
 
 
 @app.route('/register', methods=['POST'])
@@ -64,7 +62,7 @@ def register_user():
     except UserCreationException as e:
         return throw_error_page(e.message)
     login_user()
-    return  # TODO return SOMETHING here (idk, a page, something like that)
+    return render_template("register.html")
 
 
 @app.route('/register_group', methods=['POST'])
@@ -104,7 +102,7 @@ def registrate_hub():
             create_hub_and_assign_to_group(group=group)
     except ObjectCreationException as e:
         return throw_error_page(e.message)
-    return  # TODO return a proper page even here, idk something like "yea! you created the hub!"
+    return render_template("index.html")
 
 
 @app.route('/unregister_user', methods=['POST'])
@@ -113,10 +111,10 @@ def unregister_user():
         return throw_error_page("User should logged in")
     user = User.objects(u_id=get_uid_from_cookies()).first()
     delete_user(user)
-    return # TODO "You've successfully unsubscribed yourself"
+    return render_template("index.html")
 
 @app.route('/unregister_group', methods=['POST'])
-def unregister_user():
+def unregister_group():
     data = request.get_json()
     if not user_is_logged_in():
         return throw_error_page("User should logged in")
@@ -125,11 +123,11 @@ def unregister_user():
         return throw_error_page("Unspecified group id")
     group = HubGroup.objects(u_id=group_id).first()
     delete_group(group)
-    return # TODO "You've successfully unsubscribed the hubgroup with name (groupname)"
+    return render_template("index.html")
 
 
 @app.route('/unregister_hub', methods=['POST'])
-def unregister_user():
+def unregister_hub():
     data = request.get_json()
     if not user_is_logged_in():
         return throw_error_page("User should logged in")
@@ -138,16 +136,13 @@ def unregister_user():
         return throw_error_page("Unspecified hub id")
     hub = Hub.objects(u_id=hub_id).first()
     delete_hub(hub)
-    return  # TODO "You've successfully unsubscribed the hub with name (hubname)"
+    return render_template("index.html")
 
 
 
-@app.route('/login', methods=['POST'])
+@app.route('/login', methods=['GET', 'POST'])
 def login_user():
-    """
-    A function to login the user, manage the cookie (generate them, and so on)
-    """
-    raise NotImplemented()
+    return render_template("login.html")
 
 
 @app.route('/report', methods=['GET'])

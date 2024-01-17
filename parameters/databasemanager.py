@@ -8,4 +8,4 @@ class DatabaseManager:
         self.port = port
 
     def connect_db(self):
-        connect(db=self.db_name, host=self.uri)
+        connect(alias=self.db_name, db=self.db_name, host=self.uri)
