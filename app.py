@@ -1,21 +1,35 @@
 from flask import Flask, request, render_template, url_for, jsonify
+from flask_login import LoginManager
 from parameters.databasemanager import DatabaseManager
 from parameters.credentials import db_name_app, uri_app, db_name_plant, uri_plant
-from db_classes.classes_si_db.user import Users
+from db_classes.classes_si_db.user import Users, UserObject
 from db_classes.classes_si_db.hubgroups import HubGroups
 from db_classes.classes_si_db.exceptions import UserCreationException, ObjectCreationException
 from utilities.object_creation_utilities import create_group_and_assign_to_user, create_hub_and_assign_to_group
 from utilities.object_management_utilities import delete_user, delete_hub, delete_group
 from utilities.common import UserMustLoggedException
 from utilities.object_creation_utilities import Hubs
+import random
+import string
 
+login_manager = LoginManager()
 app = Flask(__name__)
+
+app.secret_key = ''.join(random.choices(string.printable, k=20))
+
+login_manager.init_app(app)
 
 db = DatabaseManager(db_name=db_name_app, uri=uri_app)
 db.connect_db()
 
 plants_db = DatabaseManager(db_name=db_name_plant, uri=uri_plant)
 plants_db.connect_db()
+
+@login_manager.user_loader
+def load_user(user_id):
+    if not Users.user_exist_uid(user_id):
+        return None
+    return UserObject(Users.objects(u_id=user_id).first())
 
 def user_is_logged_in():  # more parameters may be necessary
     """
@@ -131,6 +145,7 @@ def unregister_user():
     delete_user(user)
     return render_template("index.html")
 
+
 @app.route('/unregister_group', methods=['POST'])
 def unregister_group():
     data = request.get_json()
@@ -155,7 +170,6 @@ def unregister_hub():
     hub = Hub.objects(u_id=hub_id).first()
     delete_hub(hub)
     return render_template("index.html")
-
 
 
 @app.route('/login', methods=['GET', 'POST'])
