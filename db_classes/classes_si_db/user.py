@@ -13,6 +13,7 @@ password_enabled_characters = string.printable
 username_additional_characters = "_-."
 username_enabled_characters = string.ascii_letters + string.digits + username_additional_characters
 
+# ----- MONGOENGINE USER DOCUMENT ----- #
 
 class Users(Document):
     u_id = StringField(required=True)  # assigned in production
@@ -90,6 +91,8 @@ class Users(Document):
         return cls._loc_create_user(u_id=current, username=username, hashed_password=Users.hash_string(password))
 
 
+# ----- FLASK LOGIN OBJECT ----- #
+
 class UserObject(UserMixin):
     def __init__(self, user_mongoengine_query_object):
         self.username = user_mongoengine_query_object.usernmame
@@ -98,6 +101,8 @@ class UserObject(UserMixin):
 
     def get_id(self):
         return str(self.user_id)
+
+# ----- USER CREATION EXCEPTIONS ----- #
 
 
 class UserCreationException(Exception):

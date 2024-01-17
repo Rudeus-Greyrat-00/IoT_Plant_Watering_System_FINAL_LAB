@@ -12,6 +12,8 @@ from utilities.object_creation_utilities import Hubs
 import random
 import string
 
+app_mode = 'DEBUG'
+
 login_manager = LoginManager()
 app = Flask(__name__)
 
@@ -47,24 +49,24 @@ def user_is_logged_in():
 
 def get_uid_from_cookies():  # more parameters may be necessary
     """
-    A function used to get the user id of a logged in user sending a request.
+    A function used to get the user id of a logged-in user sending a request.
     :return: the user id of the logged user that is sending the request
     """
     if not user_is_logged_in():
         raise UserMustLoggedException("The user shall be logged in!")
-    # TODO get user id from cookie
-    raise NotImplemented()
+    return current_user.get_id()
 
 
 def throw_error_page(error_str: str):
     """
     A function to return a generic error page
-    :param error_str: an error message that it may be better to not show to the final user,
-    perhaps discard it in production (though they might still be rather useful during debug!!)
+    :param error_str: an error message if in debug mode, a tidy cute generic error page otherwise
     :return: it returns a properly formatted, cute and well put together error page
     """
-    raise NotImplemented()
-    pass
+    if app_mode == 'DEBUG':
+        return jsonify({'error': 'param: ' + error_str}), 400
+    else:
+        raise NotImplemented()  # TODO generic eerror page
 
 
 # ----- ENDPOINTS ----- #
