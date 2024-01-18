@@ -216,5 +216,28 @@ def create_report():
     raise NotImplemented()
 
 
+@app.route('/settings', methods=['GET', 'POST'])
+def endpoint_objects_settings():
+    if not user_is_logged_in():
+        return render_template("index.html")
+    if request.method == 'GET':
+        return # TODO page that allow to chose a group and an hub to change his settings, a form is necessary. From here the user can also SEE
+    elif request.method == 'POST':  ## WE NEED TO FIGURE THIS OUT (some scripting may be necessary inside the page to get the group_id given the name of the group and the hub, and the UI must be
+        user_id = get_uid_from_cookies()
+        # something something we got the hub_id
+        hub_id = request.values.get("hub_id")
+        desired_humidity = request.values.get("desired_humidity")  # set by the user OR chosed by a preset (again, this is something which is done from the page)
+        watering_frequency = request.values.get("watering_frequency")
+
+        hub = Hubs.objects(u_id=hub_id).first()
+        hub.desired_humidity = desired_humidity
+        hub.watering_frequency = watering_frequency
+        hub.save()
+
+        return # TODO what do we return? A confirm page? The main setting page?
+
+
+
+
 if __name__ == '__main__':
     app.run()

@@ -11,7 +11,7 @@ def assign_group_to_user(group : HubGroups, user: Users):
     :param user:
     :return: nothing
     """
-    raise NotImplemented()  # TODO
+    user.groups.append(group)
 
 
 def assign_hub_to_group(hub: Hubs, group: HubGroups):
@@ -21,7 +21,7 @@ def assign_hub_to_group(hub: Hubs, group: HubGroups):
     :param group:
     :return: nothing
     """
-    raise NotImplemented()  # TODO
+    group.hubs.append(hub)
 
 
 def delete_hub(hub: Hubs):
@@ -29,8 +29,7 @@ def delete_hub(hub: Hubs):
     Used when a user is deleted, or he removes a hub from his account
     :return: nothing
     """
-
-    raise NotImplemented()  # TODO
+    hub.delete()
 
 
 def delete_group(group: HubGroups):
@@ -40,7 +39,7 @@ def delete_group(group: HubGroups):
     """
     for hub in group.hubs:
         delete_hub(hub)
-    raise NotImplemented()  # TODO
+    group.delete()
 
 
 def delete_user(user: Users):
@@ -50,5 +49,4 @@ def delete_user(user: Users):
     """
     for group in user.groups:  # this is pseudocode but perhaps it would work
         delete_group(group)
-    # delete user from db
-    raise NotImplemented()  # TODO
+    user.delete()

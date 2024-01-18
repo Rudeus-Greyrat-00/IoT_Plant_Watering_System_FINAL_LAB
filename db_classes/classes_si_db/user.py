@@ -13,6 +13,7 @@ password_enabled_characters = string.printable
 username_additional_characters = "_-."
 username_enabled_characters = string.ascii_letters + string.digits + username_additional_characters
 
+
 # ----- MONGOENGINE USER DOCUMENT ----- #
 
 class Users(Document):
@@ -101,6 +102,7 @@ class UserObject(UserMixin):
 
     def get_id(self):
         return str(self.user_id)
+
 
 # ----- USER CREATION EXCEPTIONS ----- #
 
