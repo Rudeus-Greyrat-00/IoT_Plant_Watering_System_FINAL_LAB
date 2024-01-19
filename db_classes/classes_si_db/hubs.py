@@ -9,7 +9,7 @@ from .classes_si_db_common import InvalidObjectNameException, ObjectNameTooLongE
 import json
 
 
-class Hub(Document):
+class Hubs(Document):
     u_id = StringField(required=True)  # assigned in production
 
     name = StringField()

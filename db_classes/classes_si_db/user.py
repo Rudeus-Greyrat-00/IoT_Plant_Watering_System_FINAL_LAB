@@ -1,10 +1,10 @@
 from mongoengine import Document, StringField, DictField, DateTimeField, ListField, ReferenceField, IntField, SequenceField
-from .hubgroup import HubGroup
+from .hubgroups import HubGroups
+from flask_login import UserMixin
 from bson import json_util
 from hashlib import sha256
 import string
 import json
-
 
 password_max_length = 50
 username_max_length = 25
@@ -14,15 +14,18 @@ username_additional_characters = "_-."
 username_enabled_characters = string.ascii_letters + string.digits + username_additional_characters
 
 
-class User(Document):
+
+class Users(Document):
     u_id = SequenceField(collection_name='Users')  # assigned in production
     username = StringField(required=True, unique=True)
     hashed_password = StringField(required=True)
     creation_date = DateTimeField()
 
-    groups = ListField(ReferenceField(HubGroup))
+    groups = ListField(ReferenceField(HubGroups))
     additional_attributes = DictField()
     meta = {'collection': 'Users'}
+
+    # --- DB MANAGEMENT UTILITIES --- #
 
     @staticmethod
     def _validate_password(password: str):
@@ -37,6 +40,10 @@ class User(Document):
             if c not in username_enabled_characters:
                 return False
         return True
+
+    @staticmethod
+    def hash_string(plain_string: str):
+        return sha256(plain_string.encode('utf-8'))
 
     def to_dict(self):
         data = self.to_mongo().to_dict()
@@ -72,12 +79,25 @@ class User(Document):
             raise InvalidPasswordException(password)
         if len(password) > password_max_length:
             raise PasswordTooLongException(password)
-        #if cls.user_exist(username):
-            #raise UserExistException(username)
-
+        if cls.user_exist(username):
+            raise UserExistException(username)
         hashed_password = sha256(password.encode('utf-8')).hexdigest()
-
         return User._loc_create_user(username=username, hashed_password=hashed_password)
+
+
+# ----- FLASK LOGIN OBJECT ----- #
+
+class UserObject(UserMixin):
+    def __init__(self, user_mongoengine_query_object):
+        self.username = user_mongoengine_query_object.usernmame
+        self.password = user_mongoengine_query_object.hashed_password
+        self.user_id = user_mongoengine_query_object.u_id
+
+    def get_id(self):
+        return str(self.user_id)
+
+
+# ----- USER CREATION EXCEPTIONS ----- #
 
 
 class UserCreationException(Exception):
