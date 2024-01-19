@@ -1,7 +1,6 @@
-from .common import *
-from db_classes.classes_si_db.user import Users
 from db_classes.classes_si_db.hubgroups import HubGroups
 from db_classes.classes_si_db.hubs import Hubs
+from db_classes.classes_si_db.user import Users
 
 
 def assign_group_to_user(group : HubGroups, user: Users):
@@ -12,6 +11,7 @@ def assign_group_to_user(group : HubGroups, user: Users):
     :return: nothing
     """
     user.groups.append(group)
+    user.save()
 
 
 def assign_hub_to_group(hub: Hubs, group: HubGroups):
@@ -22,6 +22,7 @@ def assign_hub_to_group(hub: Hubs, group: HubGroups):
     :return: nothing
     """
     group.hubs.append(hub)
+    group.save()
 
 
 def delete_hub(hub: Hubs):
@@ -47,6 +48,6 @@ def delete_user(user: Users):
     Used when a user delete his account, his groups and hubs are then deleted as well
     :return: nothing
     """
-    for group in user.groups:  # this is pseudocode but perhaps it would work
+    for group in user.groups:
         delete_group(group)
     user.delete()

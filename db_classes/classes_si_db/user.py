@@ -1,4 +1,5 @@
-from mongoengine import Document, StringField, DictField, DateTimeField, ListField, ReferenceField, IntField, SequenceField
+from mongoengine import Document, StringField, DictField, DateTimeField, ListField, ReferenceField, IntField, \
+    SequenceField
 from .hubgroups import HubGroups
 from flask_login import UserMixin
 from bson import json_util
@@ -14,9 +15,8 @@ username_additional_characters = "_-."
 username_enabled_characters = string.ascii_letters + string.digits + username_additional_characters
 
 
-
 class Users(Document):
-    u_id = SequenceField(collection_name='Users')  # assigned in production
+    u_id = SequenceField(collection_name='Users')
     username = StringField(required=True, unique=True)
     hashed_password = StringField(required=True)
     creation_date = DateTimeField()

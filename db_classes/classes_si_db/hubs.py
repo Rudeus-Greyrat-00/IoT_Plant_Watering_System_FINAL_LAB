@@ -1,5 +1,5 @@
 from mongoengine import Document, StringField, DictField, DateTimeField, FloatField, EnumField, ListField
-from mongoengine import EmbeddedDocumentField
+from mongoengine import EmbeddedDocumentField, SequenceField
 from .measures import Sensor
 from bson import json_util
 import datetime
@@ -10,7 +10,7 @@ import json
 
 
 class Hubs(Document):
-    u_id = StringField(required=True)  # assigned in production
+    u_id = SequenceField(collection_name='Hubs')
 
     name = StringField()
     date = DateTimeField()
@@ -31,18 +31,11 @@ class Hubs(Document):
             raise InvalidObjectNameException()
         if len(name) > object_name_max_length:
             raise ObjectNameTooLongException(name)
-        groups = cls.objects.order_by('u_id')
-        current = 0
-        for group in groups:
-            if group.u_id == str(current):
-                current += 1
-            else:
-                break
-        return cls._loc_create_hub(u_id=current, name=name)
+        return cls._loc_create_hub(name=name)
 
     @classmethod
-    def _loc_create_hub(cls, u_id, name="Unnamed group"):
-        hub = cls(u_id=u_id, name=name, date=datetime.date.today())
+    def _loc_create_hub(cls, name="Unnamed group"):
+        hub = cls(name=name, date=datetime.date.today())
         hub.save()
         return hub
 

@@ -14,17 +14,14 @@ import random
 import string
 import os
 
-
 app_mode = 'DEBUG'
 
 login_manager = LoginManager()
 app = Flask(__name__)
 
-
 SECRET_KEY = os.urandom(32)
 app.config['SECRET_KEY'] = SECRET_KEY
 login_manager.init_app(app)
-
 
 db = DatabaseManager(db_name=db_name_app, uri=uri_app)
 db.connect_db(alias="default")
@@ -83,13 +80,12 @@ def homepage():
 
 @app.route('/register_user', methods=['GET', 'POST'])
 def register_user():
-
-    form = RegisterForm()
-    if form.validate_on_submit(): # POST
+    form = RegisterForm()  # POST
+    if form.validate_on_submit():
         username = form.username.data
         password = form.password.data
         try:
-            user = User.create_user(username, password)
+            user = Users.create_user(username, password)
             login_user(user)
             return render_template('index.html', form=form)
         except UserCreationException as error:
@@ -98,11 +94,11 @@ def register_user():
     return render_template('register.html', form=form)
 
 
-
 @app.route('/register_group', methods=['POST'])
 def registrate_group():
     data = request.get_json()
     name = data['name']
+    location = data['location_service']
     if not user_is_logged_in():
         throw_error_page("User must be logged in")
         return
@@ -110,9 +106,9 @@ def registrate_group():
     user = Users.objects(u_id=user_id).first()
     try:
         if name:
-            create_group_and_assign_to_user(user=user, group_name=name)
+            create_group_and_assign_to_user(user=user, location=location, group_name=name)
         else:
-            create_group_and_assign_to_user(user=user)
+            create_group_and_assign_to_user(user=user, location=location)
     except ObjectCreationException as e:
         return throw_error_page(e.message)
 
@@ -212,12 +208,13 @@ def endpoint_objects_settings():
     if not user_is_logged_in():
         return render_template("index.html")
     if request.method == 'GET':
-        return # TODO page that allow to chose a group and an hub to change his settings, a form is necessary. From here the user can also SEE
+        return  # TODO page that allow to chose a group and an hub to change his settings, a form is necessary. From here the user can also SEE
     elif request.method == 'POST':  ## WE NEED TO FIGURE THIS OUT (some scripting may be necessary inside the page to get the group_id given the name of the group and the hub, and the UI must be
         user_id = get_uid_from_cookies()
         # something something we got the hub_id
         hub_id = request.values.get("hub_id")
-        desired_humidity = request.values.get("desired_humidity")  # set by the user OR chosed by a preset (again, this is something which is done from the page)
+        desired_humidity = request.values.get(
+            "desired_humidity")  # set by the user OR chosed by a preset (again, this is something which is done from the page)
         watering_frequency = request.values.get("watering_frequency")
 
         hub = Hubs.objects(u_id=hub_id).first()
@@ -225,9 +222,7 @@ def endpoint_objects_settings():
         hub.watering_frequency = watering_frequency
         hub.save()
 
-        return # TODO what do we return? A confirm page? The main setting page?
-
-
+        return  # TODO what do we return? A confirm page? The main setting page?
 
 
 if __name__ == '__main__':

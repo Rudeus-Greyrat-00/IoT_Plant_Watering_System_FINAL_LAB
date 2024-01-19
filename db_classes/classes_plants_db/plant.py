@@ -7,7 +7,7 @@ import json
 class Plant(Document):
     name = StringField(required=True)
     description = StringField()
-
+    
     ideal_humidity = FloatField(required=True)
     ideal_watering = EnumField(WateringInterval, required=True)
     ideal_air_temperature = FloatField(required=True)
