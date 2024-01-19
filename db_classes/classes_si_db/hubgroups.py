@@ -1,4 +1,5 @@
 from mongoengine import Document, StringField, DictField, DateTimeField, ListField, ReferenceField, SequenceField
+from mongoengine import GeoPointField
 from .hubs import Hubs
 from bson import json_util
 import json
@@ -12,7 +13,7 @@ class HubGroups(Document):
 
     name = StringField()
     creation_date = DateTimeField()
-    location = StringField(required=True)
+    location = GeoPointField(required=True)
 
     hubs = ListField(ReferenceField(Hubs))
     additional_attributes = DictField()
