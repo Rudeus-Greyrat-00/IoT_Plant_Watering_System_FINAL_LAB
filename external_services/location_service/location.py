@@ -5,7 +5,7 @@ from geopy import location
 
 # ----- LOCATION SERVICES ----- #
 
-from _bing import geolocator
+from ._bing import geolocator
 
 
 def search_location(locality: str) -> location:
