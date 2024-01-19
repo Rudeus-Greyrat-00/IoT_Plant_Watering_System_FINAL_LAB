@@ -80,7 +80,7 @@ def homepage():
 
 @app.route('/register_user', methods=['GET', 'POST'])
 def register_user():
-    form = RegisterForm()  # POST
+    form = RegisterForm()  # POSTde
     if form.validate_on_submit():
         username = form.username.data
         password = form.password.data
