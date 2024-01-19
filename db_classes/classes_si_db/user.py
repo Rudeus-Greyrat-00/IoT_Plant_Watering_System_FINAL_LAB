@@ -82,7 +82,7 @@ class Users(Document):
         if cls.user_exist(username):
             raise UserExistException(username)
         hashed_password = sha256(password.encode('utf-8')).hexdigest()
-        return User._loc_create_user(username=username, hashed_password=hashed_password)
+        return cls._loc_create_user(username=username, hashed_password=hashed_password)
 
 
 # ----- FLASK LOGIN OBJECT ----- #
