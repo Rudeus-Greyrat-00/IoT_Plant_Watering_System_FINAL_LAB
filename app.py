@@ -86,7 +86,7 @@ def register_user():
         password = form.password.data
         try:
             user = Users.create_user(username, password)
-            login_user(user)
+            login_user(UserObject(user))
             return render_template('index.html', form=form)
         except UserCreationException as error:
             return render_template('register.html', form=form, error=error.message)
