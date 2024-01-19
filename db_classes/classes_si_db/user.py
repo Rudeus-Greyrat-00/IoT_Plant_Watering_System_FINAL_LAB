@@ -1,4 +1,4 @@
-from mongoengine import Document, StringField, DictField, DateTimeField, ListField, ReferenceField
+from mongoengine import Document, StringField, DictField, DateTimeField, ListField, ReferenceField, IntField, SequenceField
 from .hubgroup import HubGroup
 from bson import json_util
 from hashlib import sha256
@@ -15,8 +15,8 @@ username_enabled_characters = string.ascii_letters + string.digits + username_ad
 
 
 class User(Document):
-    u_id = StringField(required=True)  # assigned in production
-    username = StringField(required=True)
+    u_id = SequenceField(collection_name='Users')  # assigned in production
+    username = StringField(required=True, unique=True)
     hashed_password = StringField(required=True)
     creation_date = DateTimeField()
 
@@ -57,8 +57,8 @@ class User(Document):
         return False
 
     @classmethod
-    def _loc_create_user(cls, u_id, username, hashed_password):
-        user = cls(u_id=u_id, username=username, hashed_password=hashed_password)
+    def _loc_create_user(cls, username, hashed_password):
+        user = cls(username=username, hashed_password=hashed_password)
         user.save()
         return user
 
@@ -72,16 +72,12 @@ class User(Document):
             raise InvalidPasswordException(password)
         if len(password) > password_max_length:
             raise PasswordTooLongException(password)
-        if cls.user_exist(username):
-            raise UserExistException(username)
-        users = User.objects.order_by('u_id')
-        current = 0
-        for user in users:
-            if user.u_id == str(current):
-                current += 1
-            else:
-                break
-        return User._loc_create_user(u_id=current, username=username, hashed_password=sha256(password.encode('utf-8')))
+        #if cls.user_exist(username):
+            #raise UserExistException(username)
+
+        hashed_password = sha256(password.encode('utf-8')).hexdigest()
+
+        return User._loc_create_user(username=username, hashed_password=hashed_password)
 
 
 class UserCreationException(Exception):
