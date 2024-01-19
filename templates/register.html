@@ -19,20 +19,31 @@
             <div class="card border-0 shadow rounded-3 my-5">
                 <div class="card-body p-4 p-sm-5">
                 <h5 class="card-title text-center mb-5 fw-light fs-5">Sign Up</h5>
-                <form action="{{ url_for('register_user') }}" method="post">
-                    <div class="form-floating mb-3">
-                    <input type="text" class="form-control" id="floatingInput" placeholder="Your username" name="username">
-                    <label for="floatingInput">Username</label>
-                    </div>
-                    <div class="form-floating mb-3">
-                    <input type="password" class="form-control" id="floatingPassword" placeholder="Password" name="password">
-                    <label for="floatingPassword">Password</label>
-                    </div>
 
+                <form action="" method="post" novalidate>
+                    {{ form.hidden_tag() }}
+
+                    {% if error %}
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            {{ error }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endif %}
+
+                    <div class="form-floating mb-3">
+                        <label>Username</label>
+                        {{ form.username(class="form-control", placeholder="Your username") }}
+                    </div>
+                    <div class="form-floating mb-3">
+                        <label>Password</label>
+                        {{ form.password(class="form-control", placeholder="Password") }}
+                    </div>
                     <div class="d-grid">
-                    <button class="btn btn-primary btn-login text-uppercase fw-bold" type="submit">Sign Up</button>
+                        <button class="btn btn-success btn-login text-uppercase fw-bold" type="submit">Sign Up</button>
                     </div>
                 </form>
+
+
                 </div>
             </div>
             </div>

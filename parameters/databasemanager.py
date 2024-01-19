@@ -7,5 +7,5 @@ class DatabaseManager:
         self.uri = uri
         self.port = port
 
-    def connect_db(self):
-        connect(alias=self.db_name, db=self.db_name, host=self.uri)
+    def connect_db(self, alias):
+        connect(alias=alias, db=self.db_name, host=self.uri)

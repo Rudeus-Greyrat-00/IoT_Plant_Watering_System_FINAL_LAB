@@ -1,4 +1,4 @@
-from mongoengine import Document, StringField, DictField, DateTimeField, ListField, ReferenceField
+from mongoengine import Document, StringField, DictField, DateTimeField, ListField, ReferenceField, IntField, SequenceField
 from .hubgroups import HubGroups
 from flask_login import UserMixin
 from bson import json_util
@@ -14,11 +14,10 @@ username_additional_characters = "_-."
 username_enabled_characters = string.ascii_letters + string.digits + username_additional_characters
 
 
-# ----- MONGOENGINE USER DOCUMENT ----- #
 
 class Users(Document):
-    u_id = StringField(required=True)  # assigned in production
-    username = StringField(required=True)
+    u_id = SequenceField(collection_name='Users')  # assigned in production
+    username = StringField(required=True, unique=True)
     hashed_password = StringField(required=True)
     creation_date = DateTimeField()
 
@@ -65,8 +64,8 @@ class Users(Document):
         return False
 
     @classmethod
-    def _loc_create_user(cls, u_id, username, hashed_password):
-        user = cls(u_id=u_id, username=username, hashed_password=hashed_password)
+    def _loc_create_user(cls, username, hashed_password):
+        user = cls(username=username, hashed_password=hashed_password)
         user.save()
         return user
 
@@ -82,14 +81,8 @@ class Users(Document):
             raise PasswordTooLongException(password)
         if cls.user_exist(username):
             raise UserExistException(username)
-        users = Users.objects.order_by('u_id')
-        current = 0
-        for user in users:
-            if user.u_id == str(current):
-                current += 1
-            else:
-                break
-        return cls._loc_create_user(u_id=current, username=username, hashed_password=Users.hash_string(password))
+        hashed_password = sha256(password.encode('utf-8')).hexdigest()
+        return User._loc_create_user(username=username, hashed_password=hashed_password)
 
 
 # ----- FLASK LOGIN OBJECT ----- #

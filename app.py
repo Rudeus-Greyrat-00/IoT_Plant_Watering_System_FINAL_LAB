@@ -8,24 +8,29 @@ from db_classes.classes_si_db.exceptions import UserCreationException, ObjectCre
 from utilities.object_creation_utilities import create_group_and_assign_to_user, create_hub_and_assign_to_group
 from utilities.object_management_utilities import delete_user, delete_hub, delete_group
 from utilities.common import UserMustLoggedException
+from forms.register_form import RegisterForm
 from utilities.object_creation_utilities import Hubs
 import random
 import string
+import os
+
 
 app_mode = 'DEBUG'
 
 login_manager = LoginManager()
 app = Flask(__name__)
 
-app.secret_key = ''.join(random.choices(string.printable, k=20))
 
+SECRET_KEY = os.urandom(32)
+app.config['SECRET_KEY'] = SECRET_KEY
 login_manager.init_app(app)
 
+
 db = DatabaseManager(db_name=db_name_app, uri=uri_app)
-db.connect_db()
+db.connect_db(alias="default")
 
 plants_db = DatabaseManager(db_name=db_name_plant, uri=uri_plant)
-plants_db.connect_db()
+plants_db.connect_db(alias="plants")
 
 
 # ----- FLASK LOGIN CALLBACK ----- #
@@ -76,36 +81,22 @@ def homepage():
     return render_template("index.html")
 
 
-@app.route('/register', methods=['POST', 'GET'])
+@app.route('/register_user', methods=['GET', 'POST'])
 def register_user():
-    if request.method == "POST":
-        data = request.get_json()
-        try:
-            user = Users.create_user(
-                username=data.get('username'),
-                password=data.get('password')
-            )
-            login_user(UserObject(Users.objects(user.username).first()))
-            return jsonify(user.to_dict()), 201
-        except UserCreationException as e:
-            return jsonify({'error': str(e.message)}), 400
-    elif request.method == "GET":
-        return render_template("register.html")
 
-    """
-    if request.method == "POST":
-        data = request.get_json()
-        username = data['username']
-        password = data['password']
+    form = RegisterForm()
+    if form.validate_on_submit(): # POST
+        username = form.username.data
+        password = form.password.data
         try:
             user = User.create_user(username, password)
-            return jsonify(user.to_dict()), 201
-            login_user(UserObject(Users.objects(user.username).first()))
-        except UserCreationException as e:
-            return throw_error_page(e.message)
-    elif request.method == "GET":
-        return render_template("register.html")
-    """
+            login_user(user)
+            return render_template('index.html', form=form)
+        except UserCreationException as error:
+            return render_template('register.html', form=form, error=error.message)
+
+    return render_template('register.html', form=form)
+
 
 
 @app.route('/register_group', methods=['POST'])
