@@ -1,4 +1,5 @@
-from mongoengine import Document, StringField, DictField, DateTimeField, ListField, ReferenceField, SequenceField
+from mongoengine import Document, StringField, DictField, DateTimeField, ListField, ReferenceField, SequenceField,\
+    EmbeddedDocument, EmbeddedDocumentField
 from .hubs import Hubs
 from bson import json_util
 import json
@@ -7,14 +8,14 @@ from .classes_si_db_common import object_name_max_length, validate_object_name
 from .classes_si_db_common import InvalidObjectNameException, ObjectNameTooLongException
 
 
-class HubGroups(Document):
-    u_id = SequenceField(collection_name='Groups')
+class HubGroups(EmbeddedDocument):
+    u_id = SequenceField(collection_name='HubGroup')
 
     name = StringField()
     creation_date = DateTimeField()
     location = StringField(required=True)
 
-    hubs = ListField(ReferenceField(Hubs))
+    hubs = ListField(EmbeddedDocumentField(Hubs))
     additional_attributes = DictField()
     meta = {'collection': 'Groups'}
 
@@ -32,6 +33,6 @@ class HubGroups(Document):
 
     @classmethod
     def _loc_create_group(cls, location, name="Unnamed group"):
-        group = cls(name=name, location=location, date=datetime.date.today())
-        group.save()
+        group = cls(name=name, location=location)
+        #group.save()
         return group

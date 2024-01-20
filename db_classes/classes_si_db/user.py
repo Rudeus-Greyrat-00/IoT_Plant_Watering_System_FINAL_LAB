@@ -1,5 +1,5 @@
 from mongoengine import Document, StringField, DictField, DateTimeField, ListField, ReferenceField, IntField, \
-    SequenceField
+    SequenceField, EmbeddedDocumentField
 from .hubgroups import HubGroups
 from flask_login import UserMixin
 from bson import json_util
@@ -16,12 +16,12 @@ username_enabled_characters = string.ascii_letters + string.digits + username_ad
 
 
 class Users(Document):
-    u_id = SequenceField(collection_name='Users')
+    u_id = StringField(required=True, unique=True) # hash of username
     username = StringField(required=True, unique=True)
     hashed_password = StringField(required=True)
     creation_date = DateTimeField()
 
-    groups = ListField(ReferenceField(HubGroups))
+    groups = ListField(EmbeddedDocumentField(HubGroups))
     additional_attributes = DictField()
     meta = {'collection': 'Users'}
 
@@ -43,7 +43,7 @@ class Users(Document):
 
     @staticmethod
     def hash_string(plain_string: str):
-        return sha256(plain_string.encode('utf-8'))
+        return sha256(plain_string.encode('utf-8')).hexdigest()
 
     def to_dict(self):
         data = self.to_mongo().to_dict()
@@ -65,7 +65,7 @@ class Users(Document):
 
     @classmethod
     def _loc_create_user(cls, username, hashed_password):
-        user = cls(username=username, hashed_password=hashed_password)
+        user = cls(u_id=Users.hash_string(username), username=username, hashed_password=hashed_password)
         user.save()
         return user
 
@@ -81,7 +81,8 @@ class Users(Document):
             raise PasswordTooLongException(password)
         if cls.user_exist(username):
             raise UserExistException(username)
-        hashed_password = sha256(password.encode('utf-8')).hexdigest()
+
+        hashed_password = Users.hash_string(password)
         return cls._loc_create_user(username=username, hashed_password=hashed_password)
 
 
@@ -89,7 +90,7 @@ class Users(Document):
 
 class UserObject(UserMixin):
     def __init__(self, user_mongoengine_query_object):
-        self.username = user_mongoengine_query_object.usernmame
+        self.username = user_mongoengine_query_object.username
         self.password = user_mongoengine_query_object.hashed_password
         self.user_id = user_mongoengine_query_object.u_id
 

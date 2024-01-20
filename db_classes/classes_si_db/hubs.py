@@ -1,5 +1,5 @@
 from mongoengine import Document, StringField, DictField, DateTimeField, FloatField, EnumField, ListField
-from mongoengine import EmbeddedDocumentField, SequenceField
+from mongoengine import EmbeddedDocumentField, SequenceField, EmbeddedDocument
 from .measures import Sensor
 from bson import json_util
 import datetime
@@ -9,7 +9,7 @@ from .classes_si_db_common import InvalidObjectNameException, ObjectNameTooLongE
 import json
 
 
-class Hubs(Document):
+class Hubs(EmbeddedDocument):
     u_id = SequenceField(collection_name='Hubs')
 
     name = StringField()

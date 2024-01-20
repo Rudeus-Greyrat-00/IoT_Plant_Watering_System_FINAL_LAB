@@ -9,6 +9,9 @@ from utilities.object_creation_utilities import create_group_and_assign_to_user,
 from utilities.object_management_utilities import delete_user, delete_hub, delete_group
 from utilities.common import UserMustLoggedException
 from forms.register_form import RegisterForm
+from forms.login_form import LoginForm
+from forms.new_hub_group import NewHubGroupForm
+from forms.new_hub import NewHubForm
 from utilities.object_creation_utilities import Hubs
 import random
 import string
@@ -80,41 +83,72 @@ def homepage():
 
 @app.route('/register_user', methods=['GET', 'POST'])
 def register_user():
-    form = RegisterForm()  # POSTde
+    form = RegisterForm()  # POST
     if form.validate_on_submit():
         username = form.username.data
         password = form.password.data
         try:
             user = Users.create_user(username, password)
             login_user(UserObject(user))
-            return render_template('index.html', form=form)
+            return render_template('dashboard.html')
         except UserCreationException as error:
             return render_template('register.html', form=form, error=error.message)
 
     return render_template('register.html', form=form)
 
 
-@app.route('/register_group', methods=['POST'])
+@app.route('/register_group', methods=['GET', 'POST'])
 def registrate_group():
-    data = request.get_json()
-    name = data['name']
-    location = data['location_service']
-    if not user_is_logged_in():
-        throw_error_page("User must be logged in")
-        return
-    user_id = get_uid_from_cookies()  # from cookies
-    user = Users.objects(u_id=user_id).first()
-    try:
-        if name:
-            create_group_and_assign_to_user(user=user, location=location, group_name=name)
-        else:
-            create_group_and_assign_to_user(user=user, location=location)
-    except ObjectCreationException as e:
-        return throw_error_page(e.message)
+    form = NewHubGroupForm()
+    if user_is_logged_in():
+        if request.method == 'GET':
+            return render_template('register_hub_group.html', form=form)
+        elif request.method == 'POST':
+            if form.validate_on_submit():
+                name = form.name.data
+                location = form.location.data
+                user_id = get_uid_from_cookies()  # from cookies
+                user = Users.objects(u_id=user_id).first()
+                try:
+                    if name:
+                        create_group_and_assign_to_user(user=user, location=location, group_name=name)
+                    else:
+                        create_group_and_assign_to_user(user=user, location=location)
+                    return render_template('register_hub_group.html', form=form)
+                except ObjectCreationException as error:
+                    return throw_error_page(error.message)
+    else:
+        return render_template("login.html")
 
 
-@app.route('/register_hub', methods=['POST'])
+
+
+@app.route('/register_hub', methods=['GET', 'POST'])
 def registrate_hub():
+    form = NewHubForm()
+    if user_is_logged_in():
+        if request.method == 'GET':
+            return render_template('register_hub.html', form=form)
+        elif request.method == 'POST':
+            if form.validate_on_submit():
+                name = form.name.data
+                desired_humidity = form.desired_humidity.data
+                watering_frequency = form.watering_frequency.data
+                user_id = get_uid_from_cookies()  # from cookies
+                user = Users.objects(u_id=user_id).first()
+                try:
+                    if name:
+                        pass
+                        #create_hub_and_assign_to_group(group=group, hub_name=name)
+                    else:
+                        pass
+                        #create_hub_and_assign_to_group(group=group)
+                    return render_template('register_hub.html', form=form)
+                except ObjectCreationException as error:
+                    return throw_error_page(error.message)
+    else:
+        return render_template("login.html")
+    """
     data = request.get_json()
     group_id = data['group_id']
     name = data['name']
@@ -133,7 +167,7 @@ def registrate_hub():
     except ObjectCreationException as e:
         return throw_error_page(e.message)
     return render_template("index.html")
-
+    """
 
 @app.route('/unregister_user', methods=['POST'])
 def unregister_user():
@@ -172,17 +206,18 @@ def unregister_hub():
 
 @app.route('/login', methods=['GET', 'POST'])
 def endpoint_login_user():
-    if request.method == "GET":
-        return render_template("login.html")
-    elif request.method == 'POST':
-        username = request.form.get('username')
-        password = Users.hash_string(request.form.get('password'))
-        remember = bool(request.form.get('remember me'))
+    form = LoginForm()
+    if form.validate_on_submit():
+        username = form.username.data
+        password = Users.hash_string(form.password.data)
+        remember = form.remember_me.data
         if Users.user_exist(username) and Users.objects(username=username).first().hashed_password == password:
             login_user(UserObject(Users.objects(username=username).first()), remember=remember)
-            return render_template("index.html")
+            return render_template("dashboard.html")
         else:
-            return render_template("login.html")  # TODO warning -- > username or password incorrect!
+            return render_template("login.html", form=form, error="Username or password not correct.")
+
+    return render_template('login.html', form=form)
 
 
 @app.route('/logout', methods=['GET'])
@@ -223,6 +258,40 @@ def endpoint_objects_settings():
         hub.save()
 
         return  # TODO what do we return? A confirm page? The main setting page?
+
+@app.route('/dashboard', methods=['GET'])
+def dashboard():
+    if user_is_logged_in():
+        return render_template("dashboard.html")
+    else:
+        return render_template("login.html")
+
+@app.route('/hub_groups', methods=['GET'])
+def hub_groups():
+    if user_is_logged_in():
+        groups = Users.objects(username=current_user.username).first().groups
+        return render_template("hub_groups.html", groups=groups)
+    else:
+        return render_template("login.html")
+
+@app.route('/hub_list', methods=['GET'])
+def hub_list():
+    if user_is_logged_in():
+        user = Users.objects(username=current_user.username).first()
+        hubs = []
+        if user:
+            for group in user.groups:
+                hubs.extend(group.hubs)
+        return render_template("hub_list.html", hubs=hubs)
+    else:
+        return render_template("login.html")
+
+@app.route('/hub', methods=['GET'])
+def hub():
+    if user_is_logged_in():
+        return render_template("hub.html")
+    else:
+        return render_template("login.html")
 
 
 if __name__ == '__main__':
