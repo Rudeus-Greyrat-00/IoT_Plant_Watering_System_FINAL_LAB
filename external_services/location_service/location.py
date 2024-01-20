@@ -31,3 +31,9 @@ def search_coordinates(locality: str):
     """
     actual_locality = geolocator.geocode(locality)
     return actual_locality.latitude, actual_locality.longitude
+
+
+# ----- TEST ----- #
+
+if __name__ == "__main__":
+    print(search_address("Assemini"), search_coordinates("Assemini"))

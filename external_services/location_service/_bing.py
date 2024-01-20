@@ -1,6 +1,6 @@
 from geopy.geocoders import Bing
 
-BING_API_KEY = 'AowcYDHN0hViaSYjGxyZ5yxFJ2LNxpV9Vy-KFU6gFAQgpM7blIXztBmLv90UYtsF'
+from ..API_KEYS import BING_API_KEY
 
 geolocator = Bing(api_key=BING_API_KEY)
 
