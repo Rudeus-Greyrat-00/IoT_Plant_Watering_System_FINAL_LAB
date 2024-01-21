@@ -8,16 +8,16 @@ from .classes_si_db_common import object_name_max_length, validate_object_name
 from .classes_si_db_common import InvalidObjectNameException, ObjectNameTooLongException
 
 
-class HubGroups(EmbeddedDocument):
-    u_id = SequenceField(collection_name='HubGroup')
+class HubGroups(Document):
+    u_id = SequenceField(collection_name='HubGroups')
 
     name = StringField()
     creation_date = DateTimeField()
     location = StringField(required=True)
 
-    hubs = ListField(EmbeddedDocumentField(Hubs))
+    hubs = ListField(ReferenceField(Hubs))
     additional_attributes = DictField()
-    meta = {'collection': 'Groups'}
+    meta = {'collection': 'HubGroups'}
 
     def to_dict(self):
         data = self.to_mongo().to_dict()
@@ -34,5 +34,5 @@ class HubGroups(EmbeddedDocument):
     @classmethod
     def _loc_create_group(cls, location, name="Unnamed group"):
         group = cls(name=name, location=location)
-        #group.save()
+        group.save()
         return group

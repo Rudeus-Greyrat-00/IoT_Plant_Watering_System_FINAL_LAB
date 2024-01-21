@@ -123,8 +123,8 @@ def registrate_group():
 
 
 
-@app.route('/register_hub', methods=['GET', 'POST'])
-def registrate_hub():
+@app.route('/register_hub/<int:hub_group_id>', methods=['GET', 'POST'])
+def registrate_hub(hub_group_id):
     form = NewHubForm()
     if user_is_logged_in():
         if request.method == 'GET':
@@ -134,20 +134,18 @@ def registrate_hub():
                 name = form.name.data
                 desired_humidity = form.desired_humidity.data
                 watering_frequency = form.watering_frequency.data
-                user_id = get_uid_from_cookies()  # from cookies
-                user = Users.objects(u_id=user_id).first()
+                group = HubGroups.objects(u_id=hub_group_id).first()
                 try:
                     if name:
-                        pass
-                        #create_hub_and_assign_to_group(group=group, hub_name=name)
+                        create_hub_and_assign_to_group(group=group, hub_name=name)
+                        return render_template("hub_list.html")
                     else:
-                        pass
-                        #create_hub_and_assign_to_group(group=group)
-                    return render_template('register_hub.html', form=form)
-                except ObjectCreationException as error:
-                    return throw_error_page(error.message)
-    else:
-        return render_template("login.html")
+                        create_hub_and_assign_to_group(group=group)
+                        return render_template("hub_list.html")
+                except ObjectCreationException as e:
+                    return throw_error_page(e.message)
+                return render_template("login.html")
+
     """
     data = request.get_json()
     group_id = data['group_id']
@@ -274,14 +272,11 @@ def hub_groups():
     else:
         return render_template("login.html")
 
-@app.route('/hub_list', methods=['GET'])
-def hub_list():
+@app.route('/hub_list/<int:hub_group_id>', methods=['GET'])
+def hub_list(hub_group_id):
     if user_is_logged_in():
         user = Users.objects(username=current_user.username).first()
-        hubs = []
-        if user:
-            for group in user.groups:
-                hubs.extend(group.hubs)
+        hubs = HubGroups.objects(u_id=hub_group_id).first().hubs
         return render_template("hub_list.html", hubs=hubs)
     else:
         return render_template("login.html")

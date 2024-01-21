@@ -9,7 +9,7 @@ from .classes_si_db_common import InvalidObjectNameException, ObjectNameTooLongE
 import json
 
 
-class Hubs(EmbeddedDocument):
+class Hubs(Document):
     u_id = SequenceField(collection_name='Hubs')
 
     name = StringField()
