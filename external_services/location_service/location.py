@@ -24,7 +24,7 @@ def search_address(locality: str) -> str:
     return geolocator.geocode(locality).address
 
 
-def search_coordinates(locality: str):
+def search_coordinates(locality: str) -> tuple:
     """
     :param locality:
     :return: an actual address

@@ -1,10 +1,13 @@
+"""
+Interface file to abstract weather service services
+"""
 from _openweathermap import get_forecast as gf
 
 
 # ----- INTERFACES ----- #
 
 class WeatherState:
-    def __init__(self, temperature, humidity, weather, longitude, latitude, country):
+    def __init__(self, temperature, humidity, weather, longitude=None, latitude=None, country=None):
         self.temperature = temperature
         self.humidity = humidity
         self.weather = weather
@@ -13,12 +16,21 @@ class WeatherState:
         self.country = country
 
     def __str__(self):
-        return f"Location: coordinates (lat, lon): {self.latitude}, {self.longitude}, " \
-               f"Country: {self.country} <---> " \
-               f"Weather: {self.weather}, Temperature: {self.temperature}°C, Humidity: {self.humidity}%"
+        return_str = f"Location: coordinates (lat, lon): {self.latitude}, {self.longitude}, " \
+            if self.longitude is not None and self.latitude is not None else ""
+        return_str += f"Country: {self.country} <---> " if self.country is not None else ""
+        return_str += f"Weather: {self.weather}, Temperature: {self.temperature}°C, Humidity: {self.humidity}%"
+        return return_str
 
 
-def get_forecast(latitude: float, longitude: float) -> WeatherState:
+def get_current_weather(latitude: float, longitude: float) -> WeatherState:
+    """
+    A function to get the current weather, given a couple of coordinates
+    :param latitude:
+    :param longitude:
+    :return: A WeatherState object containing at least a temperature (C), a weather (Clear, Rainy, ...)
+    and a humidity (%)
+    """
     weather_dict = gf(latitude=latitude, longitude=longitude)
     return WeatherState(temperature=weather_dict['temperature'], humidity=weather_dict['humidity'],
                         weather=weather_dict['weather'], latitude=weather_dict['longitude'],
@@ -28,4 +40,4 @@ def get_forecast(latitude: float, longitude: float) -> WeatherState:
 # ------ TEST ------ #
 
 if __name__ == '__main__':
-    print(get_forecast(20, 30))
+    print(get_current_weather(20, 30))  # how cool, it works
