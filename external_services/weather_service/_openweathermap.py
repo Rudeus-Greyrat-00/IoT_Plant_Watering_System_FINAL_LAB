@@ -19,14 +19,20 @@ def _collection_to_string(collection: Union[list, tuple]):  # this function is u
 
 
 # ----- API ----- #
-def get_forecast_raw(latitude, longitude):
+def get_forecast_raw(latitude, longitude) -> dict:
     url = f"https://api.openweathermap.org/data/2.5/weather?lat={latitude}&lon={longitude}&appid={API_KEY}&units=metric"
     return ast.literal_eval(requests.post(url).text)
 
 
-def get_forecast(latitude: float, longitude: float) -> tuple:
+def get_forecast(latitude: float, longitude: float) -> dict:
     current_weather = get_forecast_raw(latitude, longitude)
-    return current_weather['main']['temp'], current_weather['main']['humidity'], current_weather['weather'][0]['main']
+    return {'temperature': current_weather['main']['temp'],
+            'humidity': current_weather['main']['humidity'],
+            'weather': current_weather['weather'][0]['main'],
+            'longitude': current_weather['coord']['lon'],
+            'latitude': current_weather['coord']['lat'],
+            'country_code': current_weather['sys']['country']
+            }
 
 
 # ----- TEST ----- #
