@@ -2,41 +2,52 @@
 
 {%  block content %}
 
-<div class="container-fluid px-4">
-    <div class="grid row">
-        <div class="col-6">
-            <h1 class="mt-4">Dashboard</h1>
-            <ol class="breadcrumb mb-4">
-                <li class="breadcrumb-item active">The list of Hub Groups registered:</li>
-            </ol>
-        </div>
-        <div class="col-6 mt-4 p-0">
-            <a class="btn btn-success" href="/register_group">New Hub Group</a>
-        </div>
+
+    <div class="card-header pb-0 pt-3 bg-transparent">
+        <h6 class="text-capitalize text-medium text-white">Your Hub Groups</h6>
+        <a class="btn btn-primary" href="/register_group">Add Hub Group</a>
     </div>
 
-    <div class="row">
+    <div class="row mt-4">
+
         {% if groups %}
 
                 {% for group in groups %}
 
-                    <div class="card mb-3">
-                        <div class="card-body">
-                          <h5 class="card-title">{{ group.name }}</h5>
-                          <p class="card-text">{{ group.location }}</p>
-                          <a href="/hub_list/{{ group.u_id }}" class="btn btn-primary mt-1">View hubs associated</a>
-                          <a href="/unregister_group" class="btn btn-danger mt-1">Unregister hub group</a>
+                <div class="card mb-4">
+                    <div class="card-body p-5">
+                        <div class="row">
+                            <div class="col-md-8 col-sm-12">
+                                <div class="numbers">
+                                    <h3 class="font-weight-bolder">
+                                        {{ group.name }}
+                                    </h3>
+                                    <p class="mb-0">
+                                        <span class="text-success text-sm font-weight-bolder">Location:</span>
+                                        {{ group.location }}
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="col-md-4 col-sm-12 text-end grid icons-hub-group">
+                                <a href="/hub_list/{{ group.u_id }}"><div class="icon icon-shape bg-gradient-info shadow-primary text-center rounded-circle icon-hub-group">
+                                    <i class="fa-solid fa-eye text-lg opacity-10"></i>
+                                </div></a>
+                                <a href="/register_hub/{{ group.u_id }}"><div class="icon icon-shape bg-gradient-success shadow-primary text-center rounded-circle icon-hub-group">
+                                    <i class="fa-solid fa-plus text-lg opacity-10"></i>
+                                </div></a>
+                                <a href="/unregister_group"><div class="icon icon-shape bg-gradient-primary shadow-primary text-center rounded-circle icon-hub-group">
+                                    <i class="fa-solid fa-trash text-lg opacity-10"></i>
+                                </div></a>
+                            </div>
                         </div>
                     </div>
+                </div>
 
                 {% endfor %}
 
-        {% else %}
-            <p>No hub groups found for this user.</p>
-        {% endif %}
-
-    </div>
-
-</div>
+                {% else %}
+                    <p>No hub groups found for this user.</p>
+                {% endif %}
+            </div>
 
 {% endblock %}

@@ -5,6 +5,7 @@ from parameters.credentials import db_name_app, uri_app, db_name_plant, uri_plan
 from db_classes.classes_si_db.user import Users, UserObject
 from db_classes.classes_si_db.hubgroups import HubGroups
 from db_classes.classes_si_db.exceptions import UserCreationException, ObjectCreationException
+from db_classes.common import WateringInterval
 from utilities.object_creation_utilities import create_group_and_assign_to_user, create_hub_and_assign_to_group
 from utilities.object_management_utilities import delete_user, delete_hub, delete_group
 from utilities.common import UserMustLoggedException
@@ -114,13 +115,12 @@ def registrate_group():
                         create_group_and_assign_to_user(user=user, location=location, group_name=name)
                     else:
                         create_group_and_assign_to_user(user=user, location=location)
-                    return render_template('register_hub_group.html', form=form)
+                    return render_template('register_hub_group.html', form=form, success="Hub group successfully "
+                                                                                         "registered")
                 except ObjectCreationException as error:
-                    return throw_error_page(error.message)
+                    return render_template("register_hub_group.html", form=form, error=error.message)
     else:
         return render_template("login.html")
-
-
 
 
 @app.route('/register_hub/<int:hub_group_id>', methods=['GET', 'POST'])
@@ -128,44 +128,26 @@ def registrate_hub(hub_group_id):
     form = NewHubForm()
     if user_is_logged_in():
         if request.method == 'GET':
-            return render_template('register_hub.html', form=form)
+            watering_interval = WateringInterval
+            return render_template('register_hub.html', form=form, watering_interval=watering_interval)
         elif request.method == 'POST':
             if form.validate_on_submit():
                 name = form.name.data
                 desired_humidity = form.desired_humidity.data
-                watering_frequency = form.watering_frequency.data
+                watering_frequency = request.form.get('select_option')
                 group = HubGroups.objects(u_id=hub_group_id).first()
                 try:
                     if name:
-                        create_hub_and_assign_to_group(group=group, hub_name=name)
-                        return render_template("hub_list.html")
+                        create_hub_and_assign_to_group(group=group, desired_humidity=desired_humidity,
+                                                       watering_frequency=int(watering_frequency), hub_name=name)
                     else:
                         create_hub_and_assign_to_group(group=group)
-                        return render_template("hub_list.html")
+                    return render_template("register_hub.html", form=form, success="Hub successfully associated to the group.")
                 except ObjectCreationException as e:
-                    return throw_error_page(e.message)
-                return render_template("login.html")
+                    return render_template("hub_list.html", form=form, error=e.message)
+    else:
+        return render_template("login.html")
 
-    """
-    data = request.get_json()
-    group_id = data['group_id']
-    name = data['name']
-    if not user_is_logged_in():
-        return throw_error_page("User must be logged in")
-    elif not group_id:
-        return throw_error_page("Unspecified group id")
-    group = HubGroups.objects(u_id=group_id).first()
-    if not group:
-        return throw_error_page("Specified group does not exist")
-    try:
-        if name:
-            create_hub_and_assign_to_group(group=group, hub_name=name)
-        else:
-            create_hub_and_assign_to_group(group=group)
-    except ObjectCreationException as e:
-        return throw_error_page(e.message)
-    return render_template("index.html")
-    """
 
 @app.route('/unregister_user', methods=['POST'])
 def unregister_user():

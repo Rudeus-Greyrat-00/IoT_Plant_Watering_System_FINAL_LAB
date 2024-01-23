@@ -1,5 +1,5 @@
 from mongoengine import Document, StringField, DictField, DateTimeField, ListField, ReferenceField, SequenceField,\
-    EmbeddedDocument, EmbeddedDocumentField
+    EmbeddedDocument, EmbeddedDocumentField, GeoPointField
 from .hubs import Hubs
 from bson import json_util
 import json
