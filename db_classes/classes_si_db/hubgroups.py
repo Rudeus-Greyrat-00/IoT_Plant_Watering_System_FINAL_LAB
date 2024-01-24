@@ -1,5 +1,5 @@
-from mongoengine import Document, StringField, DictField, DateTimeField, ListField, ReferenceField, SequenceField
-from mongoengine import GeoPointField
+from mongoengine import Document, StringField, DictField, DateTimeField, ListField, ReferenceField, SequenceField,\
+    EmbeddedDocument, EmbeddedDocumentField, GeoPointField
 from .hubs import Hubs
 from bson import json_util
 import json
@@ -9,15 +9,15 @@ from .classes_si_db_common import InvalidObjectNameException, ObjectNameTooLongE
 
 
 class HubGroups(Document):
-    u_id = SequenceField(collection_name='Groups')
+    u_id = SequenceField(collection_name='HubGroups')
 
     name = StringField()
     creation_date = DateTimeField()
-    location = GeoPointField(required=True)
+    location = StringField(required=True)
 
     hubs = ListField(ReferenceField(Hubs))
     additional_attributes = DictField()
-    meta = {'collection': 'Groups'}
+    meta = {'collection': 'HubGroups'}
 
     def to_dict(self):
         data = self.to_mongo().to_dict()
@@ -33,6 +33,6 @@ class HubGroups(Document):
 
     @classmethod
     def _loc_create_group(cls, location, name="Unnamed group"):
-        group = cls(name=name, location=location, date=datetime.date.today())
+        group = cls(name=name, location=location)
         group.save()
         return group

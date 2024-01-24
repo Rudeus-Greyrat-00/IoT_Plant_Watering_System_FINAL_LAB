@@ -10,7 +10,7 @@ def create_group_and_assign_to_user(user: Users, location, group_name: str = "Un
     return hub_group
 
 
-def create_hub_and_assign_to_group(group: HubGroups, hub_name: str = "Unnamed hub"):
-    hub = Hubs.create_hub(name=hub_name)
+def create_hub_and_assign_to_group(group: HubGroups, desired_humidity, watering_frequency, hub_name: str = "Unnamed hub"):
+    hub = Hubs.create_hub(name=hub_name, desired_humidity=desired_humidity, watering_frequency=watering_frequency)
     assign_hub_to_group(hub=hub, group=group)
     return hub

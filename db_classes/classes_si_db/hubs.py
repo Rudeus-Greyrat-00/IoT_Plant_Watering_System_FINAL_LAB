@@ -1,5 +1,5 @@
 from mongoengine import Document, StringField, DictField, DateTimeField, FloatField, EnumField, ListField
-from mongoengine import EmbeddedDocumentField, SequenceField
+from mongoengine import EmbeddedDocumentField, SequenceField, EmbeddedDocument
 from .measures import Sensor
 from bson import json_util
 import datetime
@@ -26,16 +26,16 @@ class Hubs(Document):
     meta = {'collection': 'Hubs'}
 
     @classmethod
-    def create_hub(cls, name="Unnamed group"):
+    def create_hub(cls, desired_humidity, watering_frequency, name="Unnamed group"):
         if not validate_object_name(name):
             raise InvalidObjectNameException()
         if len(name) > object_name_max_length:
             raise ObjectNameTooLongException(name)
-        return cls._loc_create_hub(name=name)
+        return cls._loc_create_hub(name=name, desired_humidity=desired_humidity, watering_frequency=watering_frequency)
 
     @classmethod
-    def _loc_create_hub(cls, name="Unnamed group"):
-        hub = cls(name=name, date=datetime.date.today())
+    def _loc_create_hub(cls, desired_humidity, watering_frequency, name="Unnamed group"):
+        hub = cls(name=name, desired_humidity=desired_humidity, watering_frequency=watering_frequency, date=datetime.date.today())
         hub.save()
         return hub
 
