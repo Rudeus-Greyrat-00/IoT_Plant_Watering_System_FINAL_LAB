@@ -149,7 +149,7 @@ def registrate_hub(hub_group_id):
         return render_template("login.html")
 
 
-@app.route('/unregister_user', methods=['POST'])
+@app.route('/unregister_user', methods=['GET'])
 def unregister_user():
     if not user_is_logged_in():
         return throw_error_page("User should logged in")
@@ -158,30 +158,47 @@ def unregister_user():
     return render_template("index.html")
 
 
-@app.route('/unregister_group', methods=['POST'])
-def unregister_group():
-    data = request.get_json()
+@app.route('/unregister_group/<int:hub_group_id>', methods=['GET'])
+def unregister_group(hub_group_id):
     if not user_is_logged_in():
         return throw_error_page("User should logged in")
-    group_id = data['group_id']
-    if not group_id:
-        return throw_error_page("Unspecified group id")
-    group = HubGroups.objects(u_id=group_id).first()
-    delete_group(group)
-    return render_template("index.html")
+
+    user = Users.objects(u_id=get_uid_from_cookies()).first()
+
+    for hub_group in user.groups:
+        if hub_group.u_id == hub_group_id:
+            delete_group(hub_group)
+            return render_template("index.html")
+
+    return throw_error_page("Hub Group not Found")
 
 
-@app.route('/unregister_hub', methods=['POST'])
+@app.route('/unregister_hub', methods=['GET'])
 def unregister_hub():
-    data = request.get_json()
     if not user_is_logged_in():
         return throw_error_page("User should logged in")
-    hub_id = data['hub_id']
-    if not hub_id:
-        return throw_error_page("Unspecified hub id")
-    hub = Hubs.objects(u_id=hub_id).first()
-    delete_hub(hub)
-    return render_template("index.html")
+
+    user = Users.objects(u_id=get_uid_from_cookies()).first()
+    group_id = request.args.get('group_id')
+    hub_id = request.args.get('hub_id')
+    found = False
+
+    for user_group in user.groups:
+        print(user_group.u_id)
+        if user_group.u_id == int(group_id):
+            found = True
+            break
+
+    if not found:
+        return throw_error_page("Group not found")
+
+    for current_hub in HubGroups.objects(u_id=group_id).first().hubs:
+        if current_hub.u_id == int(hub_id):
+            delete_hub(current_hub)
+            return render_template('index.html') # Da Implementare
+
+    return throw_error_page('Hub not found')
+
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -257,13 +274,20 @@ def hub_groups():
 @app.route('/hub_list/<int:hub_group_id>', methods=['GET'])
 def hub_list(hub_group_id):
     if user_is_logged_in():
+        group = HubGroups.objects(u_id=hub_group_id).first()
         user = Users.objects(username=current_user.username).first()
-        hubs = HubGroups.objects(u_id=hub_group_id).first().hubs
-        return render_template("hub_list.html", hubs=hubs)
+
+        for user_group in user.groups:
+            if user_group.u_id == hub_group_id:
+                hubs = user_group.hubs
+                return render_template("hub_list.html", group=group, hubs=hubs)
+
+        return throw_error_page("Not found")
+
     else:
         return render_template("login.html")
 
-@app.route('/hub', methods=['GET'])
+@app.route('/hub/<int:hub_id>', methods=['GET'])
 def hub():
     if user_is_logged_in():
         return render_template("hub.html")

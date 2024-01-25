@@ -21,7 +21,7 @@ class Users(Document):
     hashed_password = StringField(required=True)
     creation_date = DateTimeField()
 
-    groups = ListField(ReferenceField(HubGroups))
+    groups = ListField(ReferenceField(HubGroups, reverse_delete_rule=4))
     additional_attributes = DictField()
     meta = {'collection': 'Users'}
 

@@ -15,7 +15,7 @@ class HubGroups(Document):
     creation_date = DateTimeField()
     location = StringField(required=True)
 
-    hubs = ListField(ReferenceField(Hubs))
+    hubs = ListField(ReferenceField(Hubs, reverse_delete_rule=4))
     additional_attributes = DictField()
     meta = {'collection': 'HubGroups'}
 
