@@ -1,6 +1,6 @@
 from mongoengine import Document, StringField, DictField, DateTimeField, ListField, ReferenceField, IntField, \
     SequenceField, EmbeddedDocumentField
-from .hubgroups import HubGroups
+from .smartpots import SmartPots
 from flask_login import UserMixin
 from bson import json_util
 from hashlib import sha256
@@ -21,7 +21,7 @@ class Users(Document):
     hashed_password = StringField(required=True)
     creation_date = DateTimeField()
 
-    groups = ListField(ReferenceField(HubGroups, reverse_delete_rule=4))
+    pots = ListField(ReferenceField(SmartPots, reverse_delete_rule=4))
     additional_attributes = DictField()
     meta = {'collection': 'Users'}
 

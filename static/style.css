@@ -26946,3 +26946,18 @@ pre[class*="language-"] {
 @media (max-width: 768px) {
   .icons-hub-group{margin-top: 10px;}
 }
+
+
+#results_address, #results_plant{list-style-type:none;}
+
+.suggestion-address, .suggestion-plant {
+    cursor: pointer;
+    padding: 5px;
+    border-bottom: 1px solid #ddd;
+}
+
+.suggestion-address:hover, .suggestion-plant:hover {
+    background-color: #f0f0f0;
+}
+
+.plant-img{border-radius: 10%; box-shadow: 5px 10px #2dce89;}

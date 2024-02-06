@@ -5,7 +5,7 @@ from geopy import location
 
 # ----- LOCATION SERVICES ----- #
 
-from ._bing import geolocator
+from external_services.location_service._bing import geolocator
 
 
 def search_location(locality: str) -> location:
@@ -21,7 +21,8 @@ def search_address(locality: str) -> str:
     :param locality:
     :return: an actual address
     """
-    return geolocator.geocode(locality).address
+    locations = geolocator.geocode(locality, exactly_one=False)
+    return [loc.address for loc in locations] if location else []
 
 
 def search_coordinates(locality: str) -> tuple:
@@ -33,7 +34,8 @@ def search_coordinates(locality: str) -> tuple:
     return actual_locality.latitude, actual_locality.longitude
 
 
+
 # ----- TEST ----- #
 
 if __name__ == "__main__":
-    print(search_address("Assemini"), search_coordinates("Assemini"))
+    print(search_address("Via Marche 36"))

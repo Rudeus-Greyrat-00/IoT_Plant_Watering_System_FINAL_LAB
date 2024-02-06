@@ -3,20 +3,22 @@ from flask_login import LoginManager, current_user, login_user, logout_user
 from parameters.databasemanager import DatabaseManager
 from parameters.credentials import db_name_app, uri_app, db_name_plant, uri_plant
 from db_classes.classes_si_db.user import Users, UserObject
-from db_classes.classes_si_db.hubgroups import HubGroups
+from db_classes.classes_si_db.smartpots import SmartPots
 from db_classes.classes_si_db.exceptions import UserCreationException, ObjectCreationException
-from db_classes.common import WateringInterval
-from utilities.object_creation_utilities import create_group_and_assign_to_user, create_hub_and_assign_to_group
-from utilities.object_management_utilities import delete_user, delete_hub, delete_group
+from db_classes.common import WateringFrequency, get_watering_frequency_choices
+from utilities.object_creation_utilities import create_pot_and_assign_to_user
+from utilities.object_management_utilities import delete_user, delete_pot
 from utilities.common import UserMustLoggedException
 from forms.register_form import RegisterForm
 from forms.login_form import LoginForm
-from forms.new_hub_group import NewHubGroupForm
-from forms.new_hub import NewHubForm
-from utilities.object_creation_utilities import Hubs
+from forms.new_smart_pot_form import NewSmartPotForm
+from external_services.location_service.location import search_address
+from external_services.location_service.location import search_coordinates
+from external_services.plant_details_service.plants import get_species_common_names, get_species_fields
 import random
 import string
 import os
+import requests
 
 app_mode = 'DEBUG'
 
@@ -98,55 +100,58 @@ def register_user():
     return render_template('register.html', form=form)
 
 
-@app.route('/register_group', methods=['GET', 'POST'])
-def registrate_group():
-    form = NewHubGroupForm()
+@app.route('/register_pot', methods=['GET', 'POST'])
+def register_pot():
+    form = NewSmartPotForm()
     if user_is_logged_in():
+        watering_frequency_choices = get_watering_frequency_choices()
+        form.watering_frequency.choices = watering_frequency_choices
         if request.method == 'GET':
-            return render_template('register_hub_group.html', form=form)
+            return render_template('register_pot.html', form=form)
         elif request.method == 'POST':
             if form.validate_on_submit():
                 name = form.name.data
                 location = form.location.data
+                plant_name = form.plant_name.data
+                desired_humidity = form.desired_humidity.data
+                watering_frequency = form.watering_frequency.data
+
+                additional_attributes = get_species_fields(plant_name)
+
                 user_id = get_uid_from_cookies()  # from cookies
                 user = Users.objects(u_id=user_id).first()
                 try:
                     if name:
-                        create_group_and_assign_to_user(user=user, location=location, group_name=name)
+                        create_pot_and_assign_to_user(user=user, location=location, plant_name=plant_name,
+                                                      desired_humidity=desired_humidity,
+                                                      watering_frequency=watering_frequency,
+                                                      additional_attributes=additional_attributes, pot_name=name)
                     else:
-                        create_group_and_assign_to_user(user=user, location=location)
-                    return render_template('register_hub_group.html', form=form, success="Hub group successfully "
-                                                                                         "registered")
+                        create_pot_and_assign_to_user(user=user, location=location, plant_name=plant_name,
+                                                      desired_humidity=desired_humidity,
+                                                      watering_frequency=watering_frequency,
+                                                      additional_attributes=additional_attributes)
+                    return render_template('register_pot.html', form=form, watering_frequency=watering_frequency_choices,
+                                           success="Pot successfully registered")
                 except ObjectCreationException as error:
-                    return render_template("register_hub_group.html", form=form, error=error.message)
+                    return render_template("register_pot.html", form=form,
+                                           error=error.message)
     else:
         return render_template("login.html")
 
 
-@app.route('/register_hub/<int:hub_group_id>', methods=['GET', 'POST'])
-def registrate_hub(hub_group_id):
-    form = NewHubForm()
-    if user_is_logged_in():
-        if request.method == 'GET':
-            watering_interval = WateringInterval
-            return render_template('register_hub.html', form=form, watering_interval=watering_interval)
-        elif request.method == 'POST':
-            if form.validate_on_submit():
-                name = form.name.data
-                desired_humidity = form.desired_humidity.data
-                watering_frequency = request.form.get('select_option')
-                group = HubGroups.objects(u_id=hub_group_id).first()
-                try:
-                    if name:
-                        create_hub_and_assign_to_group(group=group, desired_humidity=desired_humidity,
-                                                       watering_frequency=int(watering_frequency), hub_name=name)
-                    else:
-                        create_hub_and_assign_to_group(group=group)
-                    return render_template("register_hub.html", form=form, success="Hub successfully associated to the group.")
-                except ObjectCreationException as e:
-                    return render_template("hub_list.html", form=form, error=e.message)
-    else:
-        return render_template("login.html")
+@app.route('/autocomplete', methods=['GET'])
+def autocomplete():
+    query = request.args.get('query')
+    locations = search_address(query)
+    return jsonify(locations)
+
+
+@app.route('/autocomplete_plant', methods=['GET'])
+def autocomplete_plant():
+    query = request.args.get('query')
+    plants = get_species_common_names(query)
+    return jsonify(plants)
 
 
 @app.route('/unregister_user', methods=['GET'])
@@ -158,47 +163,19 @@ def unregister_user():
     return render_template("index.html")
 
 
-@app.route('/unregister_group/<int:hub_group_id>', methods=['GET'])
-def unregister_group(hub_group_id):
+@app.route('/unregister_pot/<int:pot_id>', methods=['GET'])
+def unregister_pot(pot_id):
     if not user_is_logged_in():
         return throw_error_page("User should logged in")
 
     user = Users.objects(u_id=get_uid_from_cookies()).first()
+    for pot in user.pots:
+        if pot.u_id == pot_id:
+            delete_pot(pot)
+            deleted_pot = 1
+            return render_template("smart_pots.html")
 
-    for hub_group in user.groups:
-        if hub_group.u_id == hub_group_id:
-            delete_group(hub_group)
-            return render_template("index.html")
-
-    return throw_error_page("Hub Group not Found")
-
-
-@app.route('/unregister_hub', methods=['GET'])
-def unregister_hub():
-    if not user_is_logged_in():
-        return throw_error_page("User should logged in")
-
-    user = Users.objects(u_id=get_uid_from_cookies()).first()
-    group_id = request.args.get('group_id')
-    hub_id = request.args.get('hub_id')
-    found = False
-
-    for user_group in user.groups:
-        print(user_group.u_id)
-        if user_group.u_id == int(group_id):
-            found = True
-            break
-
-    if not found:
-        return throw_error_page("Group not found")
-
-    for current_hub in HubGroups.objects(u_id=group_id).first().hubs:
-        if current_hub.u_id == int(hub_id):
-            delete_hub(current_hub)
-            return render_template('index.html') # Da Implementare
-
-    return throw_error_page('Hub not found')
-
+    return throw_error_page("Pot not Found")
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -234,7 +211,7 @@ def create_report():
         return throw_error_page("User must be logged in!!!")
     raise NotImplemented()
 
-
+"""
 @app.route('/settings', methods=['GET', 'POST'])
 def endpoint_objects_settings():
     if not user_is_logged_in():
@@ -255,6 +232,8 @@ def endpoint_objects_settings():
         hub.save()
 
         return  # TODO what do we return? A confirm page? The main setting page?
+"""
+
 
 @app.route('/dashboard', methods=['GET'])
 def dashboard():
@@ -263,34 +242,29 @@ def dashboard():
     else:
         return render_template("login.html")
 
-@app.route('/hub_groups', methods=['GET'])
-def hub_groups():
+
+@app.route('/smart_pots', methods=['GET'])
+def smart_pots():
     if user_is_logged_in():
-        groups = Users.objects(username=current_user.username).first().groups
-        return render_template("hub_groups.html", groups=groups)
+        pots = Users.objects(username=current_user.username).first().pots
+        return render_template("smart_pots.html", pots=pots)
     else:
         return render_template("login.html")
 
-@app.route('/hub_list/<int:hub_group_id>', methods=['GET'])
-def hub_list(hub_group_id):
+@app.route('/pot_details/<int:pot_id>', methods=['GET'])
+def pot_details(pot_id):
     if user_is_logged_in():
-        group = HubGroups.objects(u_id=hub_group_id).first()
+        pot = SmartPots.objects(u_id=pot_id).first()
         user = Users.objects(username=current_user.username).first()
 
-        for user_group in user.groups:
-            if user_group.u_id == hub_group_id:
-                hubs = user_group.hubs
-                return render_template("hub_list.html", group=group, hubs=hubs)
+        for user_pot in user.pots:
+            if user_pot.u_id == pot_id:
+                pot_det = user_pot
+                latitude, longitude = search_coordinates(pot_det.location)
+                return render_template('pot.html', pot=pot_det, latitude=latitude, longitude=longitude)
+
 
         return throw_error_page("Not found")
-
-    else:
-        return render_template("login.html")
-
-@app.route('/hub/<int:hub_id>', methods=['GET'])
-def hub():
-    if user_is_logged_in():
-        return render_template("hub.html")
     else:
         return render_template("login.html")
 

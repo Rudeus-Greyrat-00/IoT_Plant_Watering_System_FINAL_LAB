@@ -1,5 +1,5 @@
 from db_classes.classes_si_db.user import Users
-from db_classes.classes_si_db.hubgroups import HubGroups
+from db_classes.classes_si_db.smartpots import SmartPots
 from hashlib import sha256
 
 
