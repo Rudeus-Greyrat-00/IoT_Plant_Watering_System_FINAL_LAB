@@ -40,4 +40,4 @@ def get_current_weather(latitude: float, longitude: float) -> WeatherState:
 # ------ TEST ------ #
 
 if __name__ == '__main__':
-    print(get_current_weather(20, 30))  # how cool, it works
+    print(get_current_weather(39.292, 9))  # how cool, it works

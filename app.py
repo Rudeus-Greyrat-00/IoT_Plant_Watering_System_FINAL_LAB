@@ -22,6 +22,7 @@ from external_services.weather_service.weather import get_current_weather
 import random
 import ast
 import paho.mqtt.client as mqtt
+
 import string
 import os
 import requests
@@ -43,6 +44,7 @@ db.connect_db(alias="default")
 plants_db = DatabaseManager(db_name=db_name_plant, uri=uri_plant)
 plants_db.connect_db(alias="plants")
 
+
 # ---- MQTT ---- #
 # MQTT Callback
 def on_message(client, userdata, message):
@@ -59,14 +61,12 @@ def on_message(client, userdata, message):
     pot.add_measure("Light", dictionary['light'], "%")
 
 
-
-
 # Set up MQTT client
-client_ID= ''.join(random.choice(string.digits) for i in range(6))
+client_ID = ''.join(random.choice(string.digits) for i in range(6))
 client = mqtt.Client(client_ID)
 client.on_message = on_message
 client.connect("broker.mqttdashboard.com", 1883, 60)
-client.subscribe(f"{secret_string}/measurements}")
+client.subscribe(f"{secret_string}/measurements")
 client.loop_start()
 
 
@@ -165,7 +165,8 @@ def register_pot():
                                                       plant_name=plant_name, desired_humidity=desired_humidity,
                                                       watering_frequency=watering_frequency,
                                                       additional_attributes=additional_attributes)
-                    return render_template('register_pot.html', form=form, watering_frequency=watering_frequency_choices,
+                    return render_template('register_pot.html', form=form,
+                                           watering_frequency=watering_frequency_choices,
                                            success="Pot successfully registered")
                 except ObjectCreationException as error:
                     return render_template("register_pot.html", form=form,
@@ -245,29 +246,6 @@ def create_report():
         return throw_error_page("User must be logged in!!!")
     raise NotImplemented()
 
-"""
-@app.route('/settings', methods=['GET', 'POST'])
-def endpoint_objects_settings():
-    if not user_is_logged_in():
-        return render_template("index.html")
-    if request.method == 'GET':
-        return  # TODO page that allow to chose a group and an hub to change his settings, a form is necessary. From here the user can also SEE
-    elif request.method == 'POST':  ## WE NEED TO FIGURE THIS OUT (some scripting may be necessary inside the page to get the group_id given the name of the group and the hub, and the UI must be
-        user_id = get_uid_from_cookies()
-        # something something we got the hub_id
-        hub_id = request.values.get("hub_id")
-        desired_humidity = request.values.get(
-            "desired_humidity")  # set by the user OR chosed by a preset (again, this is something which is done from the page)
-        watering_frequency = request.values.get("watering_frequency")
-
-        hub = Hubs.objects(u_id=hub_id).first()
-        hub.desired_humidity = desired_humidity
-        hub.watering_frequency = watering_frequency
-        hub.save()
-
-        return  # TODO what do we return? A confirm page? The main setting page?
-"""
-
 
 @app.route('/dashboard', methods=['GET'])
 def dashboard():
@@ -345,7 +323,11 @@ def modify_pot_details(pot_id):
                         pot_det.watering_frequency = watering_frequency
                         pot_det.additional_attributes = additional_attributes
                         pot_det.save()
-                return render_template("modify_pot_details.html", form=form, success="Pot successfully registered")
+                        client.publish(f"{secret_string}/update_pot_setting/{pot_det.serial}",
+                                       payload=str(dict(watering_frequency=pot_det.watering_frequency,
+                                                        desired_humidity=pot_det.desired_humidity)))
+                        return render_template("modify_pot_details.html", form=form,
+                                               success="Pot successfully registered")
             except ObjectModifyException as e:
                 return render_template("modify_pot_details.html", form=form, error=e.message)
     else:
@@ -366,6 +348,15 @@ def authorize_watering(serial_number):
         return 200, "Unauthorized"
 
     return 200, "Authorized"
+
+@app.route('/get_settings/<str:serial_number>', methods=['GET'])
+def get_pot_settings(serial_number):
+    try:
+        pot = SmartPots.objects(serial_number=serial_number).first()
+    except DoesNotExist:
+        return 404, "Not Found"
+
+    return 200, str(dict(watering_frequency=pot.watering_frequency, desired_humidity=pot.desired_humidity))
 
 
 if __name__ == '__main__':
