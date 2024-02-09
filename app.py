@@ -5,6 +5,7 @@ from parameters.credentials import db_name_app, uri_app, db_name_plant, uri_plan
 from db_classes.classes_si_db.user import Users, UserObject
 from db_classes.classes_si_db.smartpots import SmartPots
 from db_classes.classes_si_db.exceptions import UserCreationException, ObjectCreationException
+from db_classes.classes_si_db.classes_si_db_common import ObjectModifyException
 from db_classes.common import WateringFrequency, get_watering_frequency_choices
 from utilities.object_creation_utilities import create_pot_and_assign_to_user
 from utilities.object_management_utilities import delete_user, delete_pot
@@ -15,6 +16,7 @@ from forms.new_smart_pot_form import NewSmartPotForm
 from external_services.location_service.location import search_address
 from external_services.location_service.location import search_coordinates
 from external_services.plant_details_service.plants import get_species_common_names, get_species_fields
+from external_services.weather_service.weather import get_current_weather
 import random
 import string
 import os
@@ -115,7 +117,6 @@ def register_pot():
                 plant_name = form.plant_name.data
                 desired_humidity = form.desired_humidity.data
                 watering_frequency = form.watering_frequency.data
-
                 additional_attributes = get_species_fields(plant_name)
 
                 user_id = get_uid_from_cookies()  # from cookies
@@ -251,6 +252,7 @@ def smart_pots():
     else:
         return render_template("login.html")
 
+
 @app.route('/pot_details/<int:pot_id>', methods=['GET'])
 def pot_details(pot_id):
     if user_is_logged_in():
@@ -261,12 +263,62 @@ def pot_details(pot_id):
             if user_pot.u_id == pot_id:
                 pot_det = user_pot
                 latitude, longitude = search_coordinates(pot_det.location)
-                return render_template('pot.html', pot=pot_det, latitude=latitude, longitude=longitude)
+                weather_object = get_current_weather(latitude, longitude)
 
+                return render_template('pot.html', pot=pot_det, latitude=latitude, longitude=longitude,
+                                       weather_object=weather_object)
 
         return throw_error_page("Not found")
     else:
         return render_template("login.html")
+
+
+@app.route('/modify_pot_details/<int:pot_id>', methods=['GET', 'POST'])
+def modify_pot_details(pot_id):
+    if user_is_logged_in():
+        form = NewSmartPotForm()
+        if request.method == 'GET':
+            watering_frequency_choices = get_watering_frequency_choices()
+            form.watering_frequency.choices = watering_frequency_choices
+            pot = SmartPots.objects(u_id=pot_id).first()
+            user = Users.objects(username=current_user.username).first()
+            for user_pot in user.pots:
+                if user_pot.u_id == pot_id:
+                    pot_det = user_pot
+                    form.name.data = pot_det.name
+                    form.location.data = pot_det.location
+                    form.plant_name.data = pot_det.plant_name
+                    form.desired_humidity.data = pot_det.desired_humidity
+                    form.watering_frequency.data = pot_det.watering_frequency
+                    return render_template("modify_pot_details.html", form=form)
+        elif request.method == 'POST':
+            watering_frequency_choices = get_watering_frequency_choices()
+            form.watering_frequency.choices = watering_frequency_choices
+            pot = SmartPots.objects(u_id=pot_id).first()
+            user = Users.objects(username=current_user.username).first()
+
+            name = form.name.data
+            location = form.location.data
+            plant_name = form.plant_name.data
+            desired_humidity = form.desired_humidity.data
+            watering_frequency = form.watering_frequency.data
+            additional_attributes = get_species_fields(plant_name)
+            try:
+                for user_pot in user.pots:
+                    if user_pot.u_id == pot_id:
+                        pot_det = user_pot
+                        pot_det.name = name
+                        pot_det.location = location
+                        pot_det.plant_name = plant_name
+                        pot_det.desired_humidity = float(desired_humidity)
+                        pot_det.watering_frequency = watering_frequency
+                        pot_det.additional_attributes = additional_attributes
+                        pot_det.save()
+                return render_template("modify_pot_details.html", form=form, success="Pot successfully registered")
+            except ObjectModifyException as e:
+                return render_template("modify_pot_details.html", form=form, error=e.message)
+    else:
+        return render_template("index.html")
 
 
 if __name__ == '__main__':

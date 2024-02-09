@@ -22,6 +22,12 @@ class ObjectCreationException(Exception):
         super().__init__("An error occurred when creating an object:\n" + self.message)
 
 
+class ObjectModifyException(Exception):
+    def __init__(self, message):
+        self.message = message
+        super().__init__("An error during the update of the pot has occurred: \n"+self.message)
+
+
 class ObjectNameTooLongException(ObjectCreationException):
     def __init__(self, object_name):
         self.message = ("The name of the object is too long (max length: " + str(object_name_max_length) +

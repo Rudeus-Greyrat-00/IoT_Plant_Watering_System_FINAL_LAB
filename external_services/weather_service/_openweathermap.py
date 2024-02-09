@@ -1,6 +1,7 @@
 import requests
 from typing import Union
 import ast
+import json
 
 from external_services.API_KEYS import OPEN_WEATHER_MAP_API_KEY as API_KEY
 
@@ -21,7 +22,8 @@ def _collection_to_string(collection: Union[list, tuple]):  # this function is u
 # ----- API ----- #
 def get_forecast_raw(latitude, longitude) -> dict:
     url = f"https://api.openweathermap.org/data/2.5/weather?lat={latitude}&lon={longitude}&appid={API_KEY}&units=metric"
-    return ast.literal_eval(requests.post(url).text)
+    weather = json.loads(requests.get(url).text)
+    return weather
 
 
 def get_forecast(latitude: float, longitude: float) -> dict:

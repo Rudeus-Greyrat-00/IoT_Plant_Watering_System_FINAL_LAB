@@ -1,7 +1,7 @@
 """
 Interface file to abstract weather service services
 """
-from _openweathermap import get_forecast as gf
+from external_services.weather_service._openweathermap import get_forecast as gf
 
 
 # ----- INTERFACES ----- #

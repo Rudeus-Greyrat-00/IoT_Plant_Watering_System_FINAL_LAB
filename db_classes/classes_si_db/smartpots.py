@@ -17,7 +17,7 @@ class SmartPots(Document):
     location = StringField(required=True)
 
     # Plant data
-    plant_name = StringField() # TO ADD required=True
+    plant_name = StringField()
     desired_humidity = FloatField()
     watering_frequency = IntField(required=True)
 

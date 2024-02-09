@@ -13,7 +13,7 @@ class PlantState:
                  soil_humidity, default_image):
         self.common_name = common_name
         self.scientific_name = scientific_name
-        self.light = light # Lux
+        self.light = light
         self.atmospheric_humidity = atmospheric_humidity
         self.atmospheric_temperature = atmospheric_temperature
         self.soil_humidity = soil_humidity
@@ -22,7 +22,7 @@ class PlantState:
 
     def calculate_ideal_watering(self):
         # Normalize parameters (these ranges are examples, adjust as necessary)
-        normalized_light = min(max(self.light / 100000, 0), 1)  # Assuming light ranges from 0 to 100000 Lux
+        normalized_light = min(max(self.light / 100, 0), 1)  # Light as humidity
         normalized_humidity = min(max(self.atmospheric_humidity / 100, 0), 1)  # Humidity as a percentage
         normalized_temperature = min(max((self.atmospheric_temperature - 10) / 20, 0),
                                      1)  # Assuming temperature ranges from 10 to 30 Celsius
@@ -92,11 +92,11 @@ def get_species_fields(species_name) -> PlantState:
     species_dict = get_species_details(species_name)['data']
     growth = species_dict['growth']
 
-    light = get_default_value_or_transform(growth['light'], 5000, lambda x: x * 10000)
-    atm_humidity = get_default_value_or_transform(growth['atmospheric_humidity'], 60, lambda x: x * 10)
-    atm_min_temp = get_default_value_or_transform(growth['minimum_temperature']['deg_c'], 25)
-    atm_max_temp = get_default_value_or_transform(growth['maximum_temperature']['deg_c'], 25)
-    soil_humidity = get_default_value_or_transform(growth['soil_humidity'], 50, lambda x: x * 10)
+    light = get_default_value_or_transform(growth['light'], 5000, lambda x: x * 10)
+    atm_humidity = get_default_value_or_transform(growth['atmospheric_humidity'], 60.0, lambda x: x * 10)
+    atm_min_temp = get_default_value_or_transform(growth['minimum_temperature']['deg_c'], 25.0)
+    atm_max_temp = get_default_value_or_transform(growth['maximum_temperature']['deg_c'], 25.0)
+    soil_humidity = get_default_value_or_transform(growth['soil_humidity'], 50.0, lambda x: x * 10)
 
     atm_temp = float((atm_min_temp + atm_max_temp) / 2)
 
