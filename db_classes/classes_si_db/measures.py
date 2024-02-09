@@ -11,8 +11,6 @@ class Measure(EmbeddedDocument):
     value = FloatField(required=True)
     unit_of_measure = StringField(required=True)
 
-
-class Sensor(EmbeddedDocument):
-    name = StringField(required=True)
-    description = StringField()
-    measures = ListField(EmbeddedDocumentField(Measure))
+    @classmethod
+    def create_measure(cls, name, value, unit_of_measure):
+        return cls(name=name, date=datetime.now(), value=value, unit_of_measure=unit_of_measure)

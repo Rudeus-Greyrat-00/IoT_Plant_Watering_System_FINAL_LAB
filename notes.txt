@@ -1,22 +1,4 @@
 MESSAGGI MQTT
 
-MEASURE HUB --> CLOUD (cloud subscribed to hub)
-{
-    "group_id" : "id"
-    "hub_id" : "id"
-    "sensor_name": "name"
-    "measure" : "measure"
-    "unit of measure" : "unit"
-    "time" : "datetime"
-}
+MESSAGGI HTTP
 
-SETTINGS CLOUD --> HUB (hub subscribed to cloud)
-{
-    "desired_humidity" : "value"
-    "watering_frequency" : "value"
-}
-
-SKIP A WATERING CYCLE CLOUD --> HUB
-{
-    "signal" : ""
-}

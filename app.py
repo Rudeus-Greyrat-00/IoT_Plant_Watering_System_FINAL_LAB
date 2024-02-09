@@ -1,9 +1,11 @@
 from flask import Flask, request, render_template, url_for, jsonify
 from flask_login import LoginManager, current_user, login_user, logout_user
 from parameters.databasemanager import DatabaseManager
+from mongoengine.errors import DoesNotExist
 from parameters.credentials import db_name_app, uri_app, db_name_plant, uri_plant
 from db_classes.classes_si_db.user import Users, UserObject
 from db_classes.classes_si_db.smartpots import SmartPots
+from db_classes.classes_si_db.measures import Measure
 from db_classes.classes_si_db.exceptions import UserCreationException, ObjectCreationException
 from db_classes.classes_si_db.classes_si_db_common import ObjectModifyException
 from db_classes.common import WateringFrequency, get_watering_frequency_choices
@@ -18,6 +20,8 @@ from external_services.location_service.location import search_coordinates
 from external_services.plant_details_service.plants import get_species_common_names, get_species_fields
 from external_services.weather_service.weather import get_current_weather
 import random
+import ast
+import paho.mqtt.client as mqtt
 import string
 import os
 import requests
@@ -31,11 +35,39 @@ SECRET_KEY = os.urandom(32)
 app.config['SECRET_KEY'] = SECRET_KEY
 login_manager.init_app(app)
 
+secret_string = 'smartpot_9459019280'
+
 db = DatabaseManager(db_name=db_name_app, uri=uri_app)
 db.connect_db(alias="default")
 
 plants_db = DatabaseManager(db_name=db_name_plant, uri=uri_plant)
 plants_db.connect_db(alias="plants")
+
+# ---- MQTT ---- #
+# MQTT Callback
+def on_message(client, userdata, message):
+    dictionary = ast.literal_eval(message.payload.decode("utf-8"))
+    serial_number = dictionary["serial_number"]
+    try:
+        pot = SmartPots.objects(serial_number=serial_number).first()
+    except DoesNotExist:
+        return
+
+    pot.add_measure("Soil Humidity", dictionary['soil_humidity'], "%")
+    pot.add_measure("Air Humidity", dictionary['air_humidity'], "%")
+    pot.add_measure("Air Temperature", dictionary['air_temperature'], "°C")
+    pot.add_measure("Light", dictionary['light'], "%")
+
+
+
+
+# Set up MQTT client
+client_ID= ''.join(random.choice(string.digits) for i in range(6))
+client = mqtt.Client(client_ID)
+client.on_message = on_message
+client.connect("broker.mqttdashboard.com", 1883, 60)
+client.subscribe(f"{secret_string}/measurements}")
+client.loop_start()
 
 
 # ----- FLASK LOGIN CALLBACK ----- #
@@ -113,6 +145,7 @@ def register_pot():
         elif request.method == 'POST':
             if form.validate_on_submit():
                 name = form.name.data
+                serial_number = form.serial_number.data
                 location = form.location.data
                 plant_name = form.plant_name.data
                 desired_humidity = form.desired_humidity.data
@@ -123,13 +156,13 @@ def register_pot():
                 user = Users.objects(u_id=user_id).first()
                 try:
                     if name:
-                        create_pot_and_assign_to_user(user=user, location=location, plant_name=plant_name,
-                                                      desired_humidity=desired_humidity,
+                        create_pot_and_assign_to_user(user=user, serial_number=serial_number, location=location,
+                                                      plant_name=plant_name, desired_humidity=desired_humidity,
                                                       watering_frequency=watering_frequency,
                                                       additional_attributes=additional_attributes, pot_name=name)
                     else:
-                        create_pot_and_assign_to_user(user=user, location=location, plant_name=plant_name,
-                                                      desired_humidity=desired_humidity,
+                        create_pot_and_assign_to_user(user=user, serial_number=serial_number, location=location,
+                                                      plant_name=plant_name, desired_humidity=desired_humidity,
                                                       watering_frequency=watering_frequency,
                                                       additional_attributes=additional_attributes)
                     return render_template('register_pot.html', form=form, watering_frequency=watering_frequency_choices,
@@ -280,12 +313,12 @@ def modify_pot_details(pot_id):
         if request.method == 'GET':
             watering_frequency_choices = get_watering_frequency_choices()
             form.watering_frequency.choices = watering_frequency_choices
-            pot = SmartPots.objects(u_id=pot_id).first()
             user = Users.objects(username=current_user.username).first()
             for user_pot in user.pots:
                 if user_pot.u_id == pot_id:
                     pot_det = user_pot
                     form.name.data = pot_det.name
+                    form.serial_number.data = pot_det.serial_number
                     form.location.data = pot_det.location
                     form.plant_name.data = pot_det.plant_name
                     form.desired_humidity.data = pot_det.desired_humidity
@@ -294,9 +327,7 @@ def modify_pot_details(pot_id):
         elif request.method == 'POST':
             watering_frequency_choices = get_watering_frequency_choices()
             form.watering_frequency.choices = watering_frequency_choices
-            pot = SmartPots.objects(u_id=pot_id).first()
             user = Users.objects(username=current_user.username).first()
-
             name = form.name.data
             location = form.location.data
             plant_name = form.plant_name.data
@@ -319,6 +350,22 @@ def modify_pot_details(pot_id):
                 return render_template("modify_pot_details.html", form=form, error=e.message)
     else:
         return render_template("index.html")
+
+
+@app.route('/authorize_watering/<str:serial_number>', methods=['GET'])
+def authorize_watering(serial_number):
+    try:
+        pot = SmartPots.objects(serial_number=serial_number).first()
+    except DoesNotExist:
+        return 404, "Not Found"
+
+    latitude, longitude = search_coordinates(pot.location)
+    weather = get_current_weather(latitude, longitude)
+
+    if weather.weather != "Clear":
+        return 200, "Unauthorized"
+
+    return 200, "Authorized"
 
 
 if __name__ == '__main__':

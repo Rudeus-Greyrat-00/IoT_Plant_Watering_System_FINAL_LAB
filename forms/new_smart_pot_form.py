@@ -4,6 +4,7 @@ from wtforms import StringField, SubmitField, PasswordField, BooleanField, Selec
 
 class NewSmartPotForm(FlaskForm):
     name = StringField('name')
+    serial_number = StringField('serial_number')
     location = StringField('location')
     plant_name = StringField('plant_name')
     desired_humidity = StringField('desired_humidity')
