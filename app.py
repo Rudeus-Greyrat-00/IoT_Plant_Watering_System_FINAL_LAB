@@ -349,17 +349,17 @@ def authorize_watering(serial_number):
     try:
         pot = SmartPots.objects(serial_number=serial_number).first()
     except DoesNotExist:
-        return 404, "Not Found"
+        return "Not Found", 404
     if pot is None:
-        return 404, "Not Found"
+        return "Not Found", 404
 
     latitude, longitude = search_coordinates(pot.location)
     weather = get_current_weather(latitude, longitude)
 
     if weather.weather != "Clear":
-        return 200, "Unauthorized"
+        return "Unauthorized", 200
 
-    return 200, "Authorized"
+    return "Authorized", 200
 
 
 @app.route('/get_settings/<string:serial_number>', methods=['GET'])
@@ -367,11 +367,11 @@ def get_pot_settings(serial_number):
     try:
         pot = SmartPots.objects(serial_number=serial_number).first()
     except DoesNotExist:
-        return 404, "Not Found"
+        return "Not Found", 404
     if pot is None:
-        return 404, "Not Found"
+        return "Not Found", 404
 
-    return 200, generate_settings_payload(pot)
+    return generate_settings_payload(pot), 200
 
 
 if __name__ == '__main__':
