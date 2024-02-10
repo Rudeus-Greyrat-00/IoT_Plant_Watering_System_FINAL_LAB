@@ -334,7 +334,7 @@ def modify_pot_details(pot_id):
                         pot_det.additional_attributes = additional_attributes
                         pot_det.save()
 
-                        client.publish(f"{secret_string}/update_pot_setting/{pot_det.serial}",
+                        client.publish(f"{secret_string}/update_pot_setting/{pot_det.serial_number}",
                                        generate_settings_payload(pot_det))
                         return render_template("modify_pot_details.html", form=form,
                                                success="Pot successfully registered")
@@ -349,6 +349,8 @@ def authorize_watering(serial_number):
     try:
         pot = SmartPots.objects(serial_number=serial_number).first()
     except DoesNotExist:
+        return 404, "Not Found"
+    if pot is None:
         return 404, "Not Found"
 
     latitude, longitude = search_coordinates(pot.location)
@@ -365,6 +367,8 @@ def get_pot_settings(serial_number):
     try:
         pot = SmartPots.objects(serial_number=serial_number).first()
     except DoesNotExist:
+        return 404, "Not Found"
+    if pot is None:
         return 404, "Not Found"
 
     return 200, generate_settings_payload(pot)
