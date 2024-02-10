@@ -344,7 +344,7 @@ def modify_pot_details(pot_id):
         return render_template("index.html")
 
 
-@app.route('/authorize_watering/<str:serial_number>', methods=['GET'])
+@app.route('/authorize_watering/<string:serial_number>', methods=['GET'])
 def authorize_watering(serial_number):
     try:
         pot = SmartPots.objects(serial_number=serial_number).first()
@@ -360,7 +360,7 @@ def authorize_watering(serial_number):
     return 200, "Authorized"
 
 
-@app.route('/get_settings/<str:serial_number>', methods=['GET'])
+@app.route('/get_settings/<string:serial_number>', methods=['GET'])
 def get_pot_settings(serial_number):
     try:
         pot = SmartPots.objects(serial_number=serial_number).first()
