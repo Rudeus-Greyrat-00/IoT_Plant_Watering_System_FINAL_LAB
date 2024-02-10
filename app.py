@@ -111,6 +111,16 @@ def throw_error_page(error_str: str):
         raise NotImplemented()  # TODO generic error page
 
 
+def generate_settings_payload(pot: SmartPots):
+    latitude, longitude = search_coordinates(pot.location)
+    hour, minute = get_current_time(latitude, longitude)
+    payload = str(dict(watering_frequency=pot.watering_frequency,
+                       desired_humidity=pot.desired_humidity,
+                       current_hour=hour,
+                       current_minute=minute))
+    return payload
+
+
 # ----- ENDPOINTS ----- #
 
 @app.route('/', methods=['GET'])
@@ -323,11 +333,9 @@ def modify_pot_details(pot_id):
                         pot_det.watering_frequency = watering_frequency
                         pot_det.additional_attributes = additional_attributes
                         pot_det.save()
-                        latitude, longitude = search_coordinates(pot_det.location)
+
                         client.publish(f"{secret_string}/update_pot_setting/{pot_det.serial}",
-                                       payload=str(dict(watering_frequency=pot_det.watering_frequency,
-                                                        desired_humidity=pot_det.desired_humidity,
-                                                        time_of_day=get_current_time(latitude, longitude))))
+                                       generate_settings_payload(pot_det))
                         return render_template("modify_pot_details.html", form=form,
                                                success="Pot successfully registered")
             except ObjectModifyException as e:
@@ -359,16 +367,7 @@ def get_pot_settings(serial_number):
     except DoesNotExist:
         return 404, "Not Found"
 
-    latitude, longitude = search_coordinates(pot.location)
-
-    return 200, str(dict(watering_frequency=pot.watering_frequency, desired_humidity=pot.desired_humidity,
-                         time_of_day=get_current_time(latitude, longitude)))
-
-
-
-
-
-
+    return 200, generate_settings_payload(pot)
 
 
 if __name__ == '__main__':

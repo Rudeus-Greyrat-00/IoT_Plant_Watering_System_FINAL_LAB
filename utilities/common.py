@@ -28,7 +28,9 @@ def get_current_time(latitude, longitude):
 
     timezone = pytz.timezone(timezone_str)
     current_time = datetime.now(timezone)
-    return f"{current_time.strftime('%H:%M')}"
+    time_str = current_time.strftime('%H:%M')
+    data = time_str.split(':')
+    return data[0], data[1]
 
 
 if __name__ == "__main__":
