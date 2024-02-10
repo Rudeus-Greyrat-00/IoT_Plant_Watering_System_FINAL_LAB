@@ -22,7 +22,7 @@ from external_services.weather_service.weather import get_current_weather
 import random
 import ast
 import paho.mqtt.client as mqtt
-
+from utilities.common import get_current_time
 import string
 import os
 import requests
@@ -323,9 +323,11 @@ def modify_pot_details(pot_id):
                         pot_det.watering_frequency = watering_frequency
                         pot_det.additional_attributes = additional_attributes
                         pot_det.save()
+                        latitude, longitude = search_coordinates(pot_det.location)
                         client.publish(f"{secret_string}/update_pot_setting/{pot_det.serial}",
                                        payload=str(dict(watering_frequency=pot_det.watering_frequency,
-                                                        desired_humidity=pot_det.desired_humidity)))
+                                                        desired_humidity=pot_det.desired_humidity,
+                                                        time_of_day=get_current_time(latitude, longitude))))
                         return render_template("modify_pot_details.html", form=form,
                                                success="Pot successfully registered")
             except ObjectModifyException as e:
@@ -349,6 +351,7 @@ def authorize_watering(serial_number):
 
     return 200, "Authorized"
 
+
 @app.route('/get_settings/<str:serial_number>', methods=['GET'])
 def get_pot_settings(serial_number):
     try:
@@ -356,7 +359,16 @@ def get_pot_settings(serial_number):
     except DoesNotExist:
         return 404, "Not Found"
 
-    return 200, str(dict(watering_frequency=pot.watering_frequency, desired_humidity=pot.desired_humidity))
+    latitude, longitude = search_coordinates(pot.location)
+
+    return 200, str(dict(watering_frequency=pot.watering_frequency, desired_humidity=pot.desired_humidity,
+                         time_of_day=get_current_time(latitude, longitude)))
+
+
+
+
+
+
 
 
 if __name__ == '__main__':
