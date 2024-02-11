@@ -41,11 +41,11 @@
                           <a href="/pot_details/{{ pot.u_id }}" class="btn btn-primary">Require Terrain Scoring Parameter</a>
                       </p>
 
-                      {% if score is not None %}
+                        {% if score %}
                       <p class="mb-2">
                           <span class="badge bg-secondary">{{ score }}</span>
                       </p>
-                      {% endif %}
+                        {% endif %}
                   </div>
               </div>
               <div class="col-md-4 col-sm-12">
@@ -198,30 +198,33 @@
                         <h5>Temperature and Humidity Sensor</h5>
                         <p>
                             State:
-                            {% if not fault_air_temp or not fault_air_hum %}
-                            <span class="badge bg-alert">Fault</span>
+                            {% if fault_air_temp or fault_air_hum %}
+                            <span class="badge bg-danger">Fault</span>
                             {% else %}
                             <span class="badge bg-success">Working</span>
+                            {% endif %}
                         </p>
                     </div>
                     <div class="mb-2">
                         <h5>Soil humidity sensor</h5>
                         <p>
                             State:
-                            {% if not fault_soil_hum %}
-                            <span class="badge bg-alert">Fault</span>
+                            {% if fault_soil_hum %}
+                            <span class="badge bg-danger">Fault</span>
                             {% else %}
                             <span class="badge bg-success">Working</span>
+                            {% endif %}
                         </p>
                     </div>
                     <div class="mb-2">
                         <h5>Light sensor</h5>
                         <p>
                             State:
-                            {% if not fault_light %}
-                            <span class="badge bg-alert">Fault</span>
+                            {% if fault_light %}
+                            <span class="badge bg-danger">Fault</span>
                             {% else %}
                             <span class="badge bg-success">Working</span>
+                            {% endif %}
                         </p>
                     </div>
                 </div>

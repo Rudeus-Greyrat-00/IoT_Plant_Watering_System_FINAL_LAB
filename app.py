@@ -47,8 +47,8 @@ plants_db.connect_db(alias="plants")
 
 
 # ---- MQTT ---- #
-# MQTT Callback
-def on_message(client, userdata, message):
+
+def MQTT_receive_measurements(message):
     dictionary = ast.literal_eval(message.payload.decode("utf-8"))
     serial_number = dictionary["serial_number"]
     try:
@@ -66,12 +66,37 @@ def on_message(client, userdata, message):
     pot.add_measure("Light", dictionary['light'], "%")
 
 
+def MQTT_notice_watering(message):
+    dictionary = ast.literal_eval(message.payload.decode("utf-8"))
+    serial_number = dictionary["serial_number"]
+    watering = dictionary["watering"]  # true or false
+    try:
+        pot = SmartPots.objects(serial_number=serial_number).first()
+    except DoesNotExist:
+        return
+    if pot is None:
+        return
+    watering_bool = False
+    if watering == 'true':
+        watering_bool = True
+    pot.add_watering_cycle(watering_bool)
+
+
+# MQTT Callback
+def on_message(client, userdata, message):
+    if message.topic == f"{secret_string}/measurements":
+        MQTT_receive_measurements(message)
+    elif message.topic == f"{secret_string}/watering":
+        MQTT_notice_watering(message)
+
+
 # Set up MQTT client
 client_ID = ''.join(random.choice(string.digits) for i in range(6))
 client = mqtt.Client(client_ID)
 client.on_message = on_message
 client.connect("test.mosquitto.org", 1883, 60)
 client.subscribe(f"{secret_string}/measurements")
+client.subscribe(f"{secret_string}/watering")
 client.loop_start()
 
 
@@ -392,14 +417,16 @@ def get_pot_settings(serial_number):
 
 
 def compute_measure_score(mean_value, ideal_value):
-    if abs(mean_value, ideal_value) > 5.5:
+    if abs(mean_value - ideal_value) > 25:
         return 1
-    elif 3 < abs(mean_value, ideal_value) <= 5.5:
+    elif 25 < abs(mean_value - ideal_value) <= 20:
         return 2
-    elif 1.5 < abs(mean_value, ideal_value) <= 3:
+    elif 20 < abs(mean_value - ideal_value) <= 5:
         return 3
-    elif abs(mean_value, ideal_value) <= 1.5:
+    elif abs(mean_value - ideal_value) < 5:
         return 4
+    else:
+        return 1
 
 
 def compute_final_score(final_score):
@@ -419,6 +446,8 @@ def get_terrain_score(serial_number):
     for user_pot in user.pots:
         if user_pot.serial_number == serial_number:
             pot_det = user_pot
+            if not len(pot_det.measures) > 20:
+                return None
             measures = defaultdict(list)
 
             for measure in reversed(pot_det.measures[-20:]):
@@ -429,15 +458,13 @@ def get_terrain_score(serial_number):
                 last_five_values = values[:5]
                 means[measure_type] = sum(last_five_values) / len(last_five_values)
 
-            print(means)
-
             score_air_humidity = compute_measure_score(means["Air Humidity"],
-                                                       pot_det.additional_attributes.atmospheric_humidity)
+                                                       pot_det.additional_attributes["atmospheric_humidity"])
             score_air_temperature = compute_measure_score(means["Air Temperature"],
-                                                          pot_det.additional_attributes.atmospheric_temperature)
-            score_light = compute_measure_score(means["Light"], pot_det.additional_attributes.light)
+                                                          pot_det.additional_attributes["atmospheric_temperature"])
+            score_light = compute_measure_score(means["Light"], pot_det.additional_attributes["light"])
             score_soil_humidity = compute_measure_score(means["Soil Humidity"],
-                                                        pot_det.additional_attributes.soil_humidity)
+                                                        pot_det.additional_attributes["soil_humidity"])
 
             final_score = (score_air_humidity + score_air_temperature + score_light + score_soil_humidity) / 4
             score = compute_final_score(final_score)
@@ -446,7 +473,7 @@ def get_terrain_score(serial_number):
 
 # ----- POTENTIAL FAULT DETECTION ----- #
 def detect_fault(serial_number):
-    residual_threshold = 10
+    residual_threshold = 30
     fault_air_humidity = False
     fault_air_temperature = False
     fault_light = False
@@ -455,25 +482,29 @@ def detect_fault(serial_number):
     for user_pot in user.pots:
         if user_pot.serial_number == serial_number:
             pot_det = user_pot
+            if not len(pot_det.measures) > 4:
+                return fault_soil_humidity, fault_air_temperature, fault_light, fault_soil_humidity
             last_four_measures = pot_det.measures[-4:]
             print(last_four_measures)
 
             # Fault detection classic approach since we do not have an estimator
-            if last_four_measures[2] in ['nan', None]:  # Light
+            if last_four_measures[1].value in ['nan', None]:  # Light
                 fault_light = True
-            if last_four_measures[3] in ['nan', None]:  # Soil Humidity
+            if last_four_measures[0].value in ['nan', None]:  # Soil Humidity
                 fault_soil_humidity = True
 
             # Fault based on residuals. If discrepancy is greater than a threshold, then a fault is detected
             latitude, longitude = search_coordinates(pot_det.location)
-            if abs(last_four_measures[0] - get_current_weather(latitude, longitude).humidity) > residual_threshold:
+            if abs(last_four_measures[3].value - get_current_weather(latitude,
+                                                                     longitude).humidity) > residual_threshold:
                 fault_air_humidity = True
 
-            if abs(last_four_measures[1] - get_current_weather(latitude, longitude).temperature) > \
+            if abs(last_four_measures[2].value - get_current_weather(latitude, longitude).temperature) > \
                     residual_threshold:
                 fault_air_temperature = True
 
-    return fault_air_temperature, fault_air_temperature, fault_light, fault_soil_humidity
+    print(fault_air_humidity, fault_air_temperature, fault_light, fault_soil_humidity)
+    return fault_air_humidity, fault_air_temperature, fault_light, fault_soil_humidity
 
 
 # ----- DATA REPRESENTATION ----- #
@@ -483,4 +514,4 @@ def chart():
 
 
 if __name__ == '__main__':
-    app.run()
+    app.run(debug=True)
