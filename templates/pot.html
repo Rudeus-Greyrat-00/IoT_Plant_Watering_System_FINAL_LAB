@@ -155,40 +155,25 @@
                 </tr>
               </thead>
               <tbody>
-                <tr class="p-2">
-                  <td>
-                    <p class="font-weight-bold mb-0">23-01-2024 06:00</p>
-                  </td>
-                  <td>
-                    <p class="font-weight-bold mb-0">50%</p>
-                  </td>
-                  <td>
-                    <p class="font-weight-bold mb-0">25 °C</p>
-                  </td>
-                  <td>
-                    <p class="font-weight-bold mb-0">23%</p>
-                  </td>
-                  <td>
-                    <p class="font-weight-bold mb-0">7000</p>
-                  </td>
-                </tr>
-                <tr class="p-2">
-                  <td>
-                    <p class="font-weight-bold mb-0">23-01-2024 06:00</p>
-                  </td>
-                  <td>
-                    <p class="font-weight-bold mb-0">50%</p>
-                  </td>
-                  <td>
-                    <p class="font-weight-bold mb-0">25 °C</p>
-                  </td>
-                  <td>
-                    <p class="font-weight-bold mb-0">23%</p>
-                  </td>
-                  <td>
-                    <p class="font-weight-bold mb-0">7000</p>
-                  </td>
-                </tr>
+                {% for measure in sorted_measures %}
+                    <tr class="p-2">
+                      <td>
+                        <p class="font-weight-bold mb-0">{{ measure.timestamp.strftime('%d-%m-%Y %H:%M') }}</p>
+                      </td>
+                      <td>
+                        <p class="font-weight-bold mb-0">{{ measure.humidity }}%</p>
+                      </td>
+                      <td>
+                        <p class="font-weight-bold mb-0">{{ measure.temperature }} °C</p>
+                      </td>
+                      <td>
+                        <p class="font-weight-bold mb-0">{{ measure.soil_humidity }}%</p>
+                      </td>
+                      <td>
+                        <p class="font-weight-bold mb-0">{{ measure.light }}</p>
+                      </td>
+                    </tr>
+                {% endfor %}
               </tbody>
             </table>
           </div>

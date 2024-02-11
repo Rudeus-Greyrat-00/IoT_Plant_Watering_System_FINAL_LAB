@@ -286,8 +286,11 @@ def pot_details(pot_id):
                 latitude, longitude = search_coordinates(pot_det.location)
                 weather_object = get_current_weather(latitude, longitude)
 
+                # RETRIEVE IN pot_det.measures the last 40 records order by timestamp
+                sorted_measures = sorted(pot_det.measures, key=lambda x: x.timestamp, reverse=True)[:40]
+
                 return render_template('pot.html', pot=pot_det, latitude=latitude, longitude=longitude,
-                                       weather_object=weather_object)
+                                       weather_object=weather_object, sorted_measures=sorted_measures)
 
         return throw_error_page("Not found")
     else:
@@ -379,10 +382,12 @@ def get_pot_settings(serial_number):
 def get_terrain_score(serial_number):
     pass
 
+
 # ----- POTENTIAL FAULT DETECTION ----- #
 @app.route('/detect_fault/<string:serial_number>', methods=['GET'])
 def detect_fault(serial_number):
     pass
+
 
 # ----- DATA REPRESENTATION ----- #
 @app.route('/chart', methods=['GET'])
