@@ -374,5 +374,21 @@ def get_pot_settings(serial_number):
     return generate_settings_payload(pot), 200
 
 
+# ----- TERRAIN SCORING PARAMETER ----- #
+@app.route('/get_terrain_score/<string:serial_number>', methods=['GET'])
+def get_terrain_score(serial_number):
+    pass
+
+# ----- POTENTIAL FAULT DETECTION ----- #
+@app.route('/detect_fault/<string:serial_number>', methods=['GET'])
+def detect_fault(serial_number):
+    pass
+
+# ----- DATA REPRESENTATION ----- #
+@app.route('/chart', methods=['GET'])
+def chart():
+    pass
+
+
 if __name__ == '__main__':
     app.run()

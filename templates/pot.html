@@ -36,6 +36,10 @@
                           <span style="color: #5e72e4">Atmospheric Temperature:</span>
                           {{ pot.additional_attributes.atmospheric_temperature }} °C
                       </p>
+
+                      <p class="mb-2">
+                          <a href="/get_terrain_score/{{ pot.serial_number }}" class="btn btn-primary">Require Terrain Scoring Parameter</a>
+                      </p>
                   </div>
               </div>
               <div class="col-md-4 col-sm-12">
@@ -134,7 +138,7 @@
 
   <div class="row mt-4">
     <div class="col-md-8 col-sm-12">
-      <div class="card mb-4 p-3">
+      <div class="card shadow mb-4 p-3">
         <div class="card-header pb-0">
           <h3>Measurement Log</h3>
         </div>
@@ -191,11 +195,60 @@
         </div>
       </div>
     </div>
+
+    <div class="mt-4">
+        <div class="col-md-8 col-sm-12">
+            <div class="card shadow mb-4 p-3">
+                <div class="card-header pb-0">
+                  <h3>State of the sensors</h3>
+                </div>
+                <div class="card-body p-3">
+                    <div class="mb-2">
+                        <h5>Temperature and Humidity Sensor</h5>
+                        <p>
+                            State:
+                        </p>
+                    </div>
+                    <div class="mb-2">
+                        <h5>Soil humidity sensor</h5>
+                        <p>
+                            State:
+                        </p>
+                    </div>
+                    <div class="mb-2">
+                        <h5>Light sensor</h5>
+                        <p>
+                            State:
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+  </div>
+
+  <div class="mt-4">
+    <!-- Area Chart -->
+    <div class="col-md-8 col-sm-12">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Area Chart</h6>
+            </div>
+            <div class="card-body">
+                <div class="chart-area">
+                    <canvas id="myAreaChart"></canvas>
+                </div>
+                <hr>
+                Styling for the area chart can be found in the
+                <code>/js/demo/chart-area-demo.js</code> file.
+            </div>
+        </div>
+    </div>
   </div>
 
   <div class="mt-4">
     <div class="col-md-8 col-sm-12">
-      <div class="card mb-4 p-3">
+      <div class="card shadow mb-4 p-3">
         <div class="card-header pb-0">
           <h3>Watering Cycles</h3>
         </div>
@@ -235,7 +288,7 @@
 
   <div class="mt-4">
     <div class="col-md-8 col-sm-12">
-      <div class="card mb-4 p-3">
+      <div class="card shadow mb-4 p-3">
         <div class="card-header pb-0">
           <h3>Weather Forecast</h3>
         </div>
