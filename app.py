@@ -24,6 +24,7 @@ import ast
 import paho.mqtt.client as mqtt
 from utilities.common import get_current_time
 import string
+from collections import defaultdict
 import os
 import requests
 
@@ -385,16 +386,98 @@ def get_pot_settings(serial_number):
     return generate_settings_payload(pot), 200
 
 
+def compute_measure_score(mean_value, ideal_value):
+    if abs(mean_value, ideal_value) > 5.5:
+        return 1
+    elif abs(mean_value, ideal_value) > 3 and abs(mean_value, ideal_value) <= 5.5:
+        return 2
+    elif abs(mean_value, ideal_value) > 1.5 and abs(mean_value, ideal_value) <= 3:
+        return 3
+    elif abs(mean_value, ideal_value) <= 1.5:
+        return 4
+
+def compute_final_score(final_score):
+    if 1 <= final_score < 1.75:
+        return "BAD"
+    if 1.75 <= final_score < 2.75:
+        return "SUFFICIENT"
+    if 2.75 <= final_score < 3.25:
+        return "GOOD"
+    if 3.25 <= final_score <= 4:
+        return "EXCELLENT"
+
+
 # ----- TERRAIN SCORING PARAMETER ----- #
 @app.route('/get_terrain_score/<string:serial_number>', methods=['GET'])
 def get_terrain_score(serial_number):
-    pass
+    if user_is_logged_in():
+        user = Users.objects(username=current_user.username).first()
+        for user_pot in user.pots:
+            if user_pot.serial_number == serial_number:
+                pot_det = user_pot
+                measures = defaultdict(list)
+
+                for measure in reversed(pot_det.measures[-20:]):
+                    measures[measure.name].append(measure.value)
+
+                means = {}
+                for measure_type, values in measures.items():
+                    last_five_values = values[:5]
+                    means[measure_type] = sum(last_five_values) / len(last_five_values)
+
+                print(means)
+
+                score_air_humidity = compute_measure_score(means["Air Humidity"],
+                                                           pot_det.additional_attributes.atmospheric_humidity)
+                score_air_temperature = compute_measure_score(means["Air Temperature"],
+                                                              pot_det.additional_attributes.atmospheric_temperature)
+                score_light = compute_measure_score(means["Light"], pot_det.additional_attributes.light)
+                score_soil_humidity = compute_measure_score(means["Soil Humidity"],
+                                                            pot_det.additional_attributes.soil_humidity)
+
+                final_score = (score_air_humidity + score_air_temperature + score_light + score_soil_humidity) / 4
+                score = compute_final_score(final_score)
+                return render_template("pot.html", score=score)
+    else:
+        return render_template("login.html")
 
 
 # ----- POTENTIAL FAULT DETECTION ----- #
 @app.route('/detect_fault/<string:serial_number>', methods=['GET'])
 def detect_fault(serial_number):
-    pass
+    if user_is_logged_in():
+        residual_threshold = 10
+        fault_air_humidity = False
+        fault_air_temperature = False
+        fault_light = False
+        fault_soil_humidity = False
+        user = Users.objects(username=current_user.username).first()
+        for user_pot in user.pots:
+            if user_pot.serial_number == serial_number:
+                pot_det = user_pot
+                last_four_measures = pot_det.measures[-4:]
+                print(last_four_measures)
+
+                # Fault detection classic approach since we do not have an estimator
+                if last_four_measures[2] in ['nan', None]:  # Light
+                    fault_light = True
+                if last_four_measures[3] in ['nan', None]:  # Soil Humidity
+                    fault_soil_humidity = True
+
+                # Fault based on residuals. If discrepancy is greater than a threshold, then a fault is detected
+                latitude, longitude = search_coordinates(pot_det.location)
+                if abs(last_four_measures[0] - get_current_weather(latitude, longitude).humidity) > residual_threshold:
+                    fault_air_humidity = True
+
+                if abs(last_four_measures[1] - get_current_weather(latitude, longitude).temperature) > \
+                        residual_threshold:
+                    fault_air_temperature = True
+
+                return render_template("pot.html", pot=pot_det, fault_air_humidity=fault_air_humidity,
+                                       fault_air_temperature=fault_air_temperature, fault_light=fault_light,
+                                       fault_soil_humidity=fault_soil_humidity)
+    else:
+        return render_template("login.html")
 
 
 # ----- DATA REPRESENTATION ----- #
