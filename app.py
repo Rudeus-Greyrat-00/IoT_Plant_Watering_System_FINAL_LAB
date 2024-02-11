@@ -389,6 +389,9 @@ def modify_pot_details(pot_id):
 
 @app.route('/authorize_watering/<string:serial_number>', methods=['GET'])
 def authorize_watering(serial_number):
+    return "OK", 200
+
+    """
     try:
         pot = SmartPots.objects(serial_number=serial_number).first()
     except Exception:
@@ -404,6 +407,7 @@ def authorize_watering(serial_number):
         return "Unauthorized", 200
 
     return "Authorized", 200
+    """
 
 
 @app.route('/get_settings/<string:serial_number>', methods=['GET'])
