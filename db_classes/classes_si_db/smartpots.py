@@ -48,7 +48,7 @@ class SmartPots(Document):
         if len(sorted_watering) - 1 > MAX_MEASURES_AMOUNT:
             to_delete = sorted_watering[0:len(sorted_watering) - MAX_MEASURES_AMOUNT]
             for to_del in to_delete:
-                self.measures.remove(to_del)
+                self.watering_cycles.remove(to_del)
         self.save()
 
 

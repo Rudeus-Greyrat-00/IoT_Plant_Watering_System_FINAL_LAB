@@ -88,6 +88,7 @@ def on_message(client, userdata, message):
         MQTT_receive_measurements(message)
     elif message.topic == f"{secret_string}/watering":
         MQTT_notice_watering(message)
+    #print(message.topic)
 
 
 # Set up MQTT client
@@ -95,8 +96,8 @@ client_ID = ''.join(random.choice(string.digits) for i in range(6))
 client = mqtt.Client(client_ID)
 client.on_message = on_message
 client.connect("test.mosquitto.org", 1883, 60)
-client.subscribe(f"{secret_string}/measurements")
 client.subscribe(f"{secret_string}/watering")
+client.subscribe(f"{secret_string}/measurements")
 client.loop_start()
 
 
@@ -390,10 +391,11 @@ def modify_pot_details(pot_id):
 def authorize_watering(serial_number):
     try:
         pot = SmartPots.objects(serial_number=serial_number).first()
-    except DoesNotExist:
+    except Exception:
         return "Not Found", 404
     if pot is None:
         return "Not Found", 404
+
 
     latitude, longitude = search_coordinates(pot.location)
     weather = get_current_weather(latitude, longitude)
