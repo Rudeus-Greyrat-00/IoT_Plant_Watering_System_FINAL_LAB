@@ -54,6 +54,10 @@ def on_message(client, userdata, message):
         pot = SmartPots.objects(serial_number=serial_number).first()
     except DoesNotExist:
         return
+    if pot is None:
+        return
+
+    # print("RECEIVED MQTT MESSAGE " + str(dictionary))
 
     pot.add_measure("Soil Humidity", dictionary['soil_humidity'], "%")
     pot.add_measure("Air Humidity", dictionary['air_humidity'], "%")
@@ -65,7 +69,7 @@ def on_message(client, userdata, message):
 client_ID = ''.join(random.choice(string.digits) for i in range(6))
 client = mqtt.Client(client_ID)
 client.on_message = on_message
-client.connect("broker.mqttdashboard.com", 1883, 60)
+client.connect("test.mosquitto.org", 1883, 60)
 client.subscribe(f"{secret_string}/measurements")
 client.loop_start()
 
@@ -118,6 +122,7 @@ def generate_settings_payload(pot: SmartPots):
                        desired_humidity=pot.desired_humidity,
                        current_hour=hour,
                        current_minute=minute))
+    print(payload)
     return payload
 
 
@@ -287,10 +292,13 @@ def pot_details(pot_id):
                 weather_object = get_current_weather(latitude, longitude)
 
                 # RETRIEVE IN pot_det.measures the last 40 records order by timestamp
-                sorted_measures = sorted(pot_det.measures, key=lambda x: x.timestamp, reverse=True)[:40]
+                sorted_measures = sorted(pot_det.measures, key=lambda x: x.date, reverse=True)[:40]
+
+                measure_len = int(len(sorted_measures) / 4)
 
                 return render_template('pot.html', pot=pot_det, latitude=latitude, longitude=longitude,
-                                       weather_object=weather_object, sorted_measures=sorted_measures)
+                                       weather_object=weather_object, measures=sorted_measures,
+                                       measure_len=measure_len)
 
         return throw_error_page("Not found")
     else:

@@ -8,6 +8,7 @@ import datetime
 from .classes_si_db_common import object_name_max_length, validate_object_name
 from .classes_si_db_common import InvalidObjectNameException, ObjectNameTooLongException
 
+MAX_MEASURES_AMOUNT = 120
 
 class SmartPots(Document):
     u_id = SequenceField(collection_name='SmartPots')
@@ -33,6 +34,11 @@ class SmartPots(Document):
 
     def add_measure(self, name, value, unit_of_measurement):
         self.measures.append(Measure.create_measure(name, value, unit_of_measurement))
+        sorted_measures = sorted(self.measures, key=lambda x: x.date) # old to new
+        if len(sorted_measures) - 1 > MAX_MEASURES_AMOUNT:
+            to_delete = sorted_measures[0:len(sorted_measures) - MAX_MEASURES_AMOUNT]
+            for to_del in to_delete:
+                self.measures.remove(to_del)
         self.save()
 
     @classmethod

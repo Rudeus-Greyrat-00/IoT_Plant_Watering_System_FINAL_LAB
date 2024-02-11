@@ -3,7 +3,7 @@ import string
 # -----   NAMES    ----- #
 
 object_name_max_length = 50
-object_name_additional_characters = "_-."
+object_name_additional_characters = " _-."
 object_name_enabled_characters = string.ascii_letters + string.digits + object_name_additional_characters
 
 

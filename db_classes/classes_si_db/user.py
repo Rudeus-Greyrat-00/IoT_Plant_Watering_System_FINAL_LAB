@@ -11,7 +11,7 @@ password_max_length = 50
 username_max_length = 25
 
 password_enabled_characters = string.printable
-username_additional_characters = "_-."
+username_additional_characters = " _-."
 username_enabled_characters = string.ascii_letters + string.digits + username_additional_characters
 
 

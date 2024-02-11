@@ -1,5 +1,3 @@
-from db_classes.classes_si_db.user import Users
-from db_classes.classes_si_db.smartpots import SmartPots
 from hashlib import sha256
 from timezonefinder import TimezoneFinder
 from datetime import datetime
@@ -33,7 +31,9 @@ def get_current_time(latitude, longitude):
     return data[0], data[1]
 
 
+
 if __name__ == "__main__":
     from external_services.location_service.location import search_coordinates
+
     latitude, longitude = search_coordinates("new york")
-    print(get_current_time( latitude, longitude))
+    print(get_current_time(latitude, longitude))

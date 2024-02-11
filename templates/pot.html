@@ -149,28 +149,28 @@
                 <tr>
                   <th class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Timestamp</th>
                   <th class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7 ps-2">Terrain Humidity</th>
-                  <th class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Air Temperature</th>
                   <th class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Air Humidity</th>
+                  <th class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Air Temperature</th>
                   <th class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Light</th>
                 </tr>
               </thead>
               <tbody>
-                {% for measure in sorted_measures %}
+                {%  for i in range(1,measure_len) %}
                     <tr class="p-2">
                       <td>
-                        <p class="font-weight-bold mb-0">{{ measure.timestamp.strftime('%d-%m-%Y %H:%M') }}</p>
+                        <p class="font-weight-bold mb-0">{{ measures[i*4].date.strftime('%d-%m-%Y %H:%M') }}</p>
                       </td>
                       <td>
-                        <p class="font-weight-bold mb-0">{{ measure.humidity }}%</p>
+                          <p class="font-weight-bold mb-0">{{ measures[i*4 + 3].value|round(1)  }} {{ measures[i*4 + 3].unit_of_measure }}</p>
                       </td>
                       <td>
-                        <p class="font-weight-bold mb-0">{{ measure.temperature }} °C</p>
+                        <p class="font-weight-bold mb-0">{{ measures[i*4 + 2].value|round(1)  }} {{ measures[i*4 + 2].unit_of_measure }}</p>
                       </td>
                       <td>
-                        <p class="font-weight-bold mb-0">{{ measure.soil_humidity }}%</p>
+                          <p class="font-weight-bold mb-0">{{ measures[i*4 + 1].value|round(1)  }} {{ measures[i*4 + 1].unit_of_measure }}</p>
                       </td>
                       <td>
-                        <p class="font-weight-bold mb-0">{{ measure.light }}</p>
+                            <p class="font-weight-bold mb-0">{{ measures[i*4].value|round(1)  }} {{  measures[i*4].unit_of_measure }}</p>
                       </td>
                     </tr>
                 {% endfor %}
